@@ -1,0 +1,8 @@
+[
+  { "from": "Ambur", "to": "Chennai", "distanceKm": 180, "highlight": "NH48 Highway" },
+  { "from": "Chennai", "to": "Pondicherry", "distanceKm": 150, "highlight": "ECR Scenic Highway" },
+  { "from": "Chennai", "to": "Tirupati", "distanceKm": 130, "highlight": "Temple Corridor" },
+  { "from": "Chennai", "to": "Vellore", "distanceKm": 135, "highlight": "NH48 Expressway" },
+  { "from": "Chennai", "to": "Madurai", "distanceKm": 460, "highlight": "AH45 Corridor" },
+  { "from": "Chennai", "to": "Coimbatore", "distanceKm": 505, "highlight": "NH544 Highway" }
+]
