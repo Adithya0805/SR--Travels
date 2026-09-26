@@ -4,10 +4,10 @@ export default function TripTabs({ activeTab, onChange }) {
       <button
         type="button"
         onClick={() => onChange('oneway')}
-        className={`flex-1 py-3 px-4 text-center font-semibold text-base transition-colors relative ${
+        className={`flex-1 py-3 px-4 text-center font-bold text-sm sm:text-base transition-colors relative ${
           activeTab === 'oneway'
-            ? 'text-dark border-b-2 border-accent'
-            : 'text-slate-500 hover:text-dark'
+            ? 'text-emerald-600 border-b-2 border-emerald-500'
+            : 'text-slate-500 hover:text-slate-800'
         }`}
       >
         <span>🚕</span> One Way
@@ -15,10 +15,10 @@ export default function TripTabs({ activeTab, onChange }) {
       <button
         type="button"
         onClick={() => onChange('roundtrip')}
-        className={`flex-1 py-3 px-4 text-center font-semibold text-base transition-colors relative ${
+        className={`flex-1 py-3 px-4 text-center font-bold text-sm sm:text-base transition-colors relative ${
           activeTab === 'roundtrip'
-            ? 'text-dark border-b-2 border-accent'
-            : 'text-slate-500 hover:text-dark'
+            ? 'text-emerald-600 border-b-2 border-emerald-500'
+            : 'text-slate-500 hover:text-slate-800'
         }`}
       >
         <span>🔄</span> Round Trip

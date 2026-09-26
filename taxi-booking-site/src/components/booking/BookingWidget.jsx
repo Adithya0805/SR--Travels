@@ -6,7 +6,7 @@ import FareEstimator from './FareEstimator';
 import ConfirmationModal from './ConfirmationModal';
 import fleetData from '../../data/fleet.json';
 
-const BookingWidget = forwardRef(function BookingWidget(props, ref) {
+const BookingWidget = forwardRef(function BookingWidget({ isMobileExpanded, setIsMobileExpanded }, ref) {
   const today = new Date().toISOString().split('T')[0];
 
   const [tripType, setTripType] = useState('oneway');
@@ -33,7 +33,11 @@ const BookingWidget = forwardRef(function BookingWidget(props, ref) {
         setDistanceKm(String(distance));
       }
       setErrors({});
+      setIsMobileExpanded(true); // Open bottom sheet when prefilled on mobile
     },
+    openSheet() {
+      setIsMobileExpanded(true);
+    }
   }));
 
   const handleInputChange = (e) => {
@@ -78,40 +82,95 @@ const BookingWidget = forwardRef(function BookingWidget(props, ref) {
   };
 
   return (
-    <div id="booking-widget" className="container mx-auto px-4 relative z-20 -mt-16 md:-mt-20">
-      <div className="bg-white text-dark rounded-2xl shadow-xl p-5 sm:p-8 border border-slate-100 max-w-4xl mx-auto">
-        {/* Trip Type Tabs */}
-        <TripTabs activeTab={tripType} onChange={setTripType} />
-
-        {/* Location & Time Inputs */}
-        <LocationInputs
-          formData={formData}
-          onChange={handleInputChange}
-          errors={errors}
+    <>
+      {/* Mobile Overlay Backdrop */}
+      {isMobileExpanded && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          onClick={() => setIsMobileExpanded(false)}
         />
+      )}
 
-        {/* Vehicle Category Selector */}
-        <VehicleSelector
-          selectedVehicleId={selectedVehicleId}
-          onSelect={setSelectedVehicleId}
-        />
+      {/* Booking Widget Wrapper: Mobile Bottom Sheet / Desktop Container */}
+      <div
+        id="booking-widget"
+        className={`
+          md:container md:mx-auto md:px-4 md:relative md:z-20 md:-mt-16 md:block
+          ${isMobileExpanded
+            ? 'fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl p-6 transition-transform duration-300 max-h-[90vh] overflow-y-auto border-t-2 border-emerald-500 md:rounded-2xl md:border md:border-slate-100 md:p-8 md:max-w-4xl md:max-h-none'
+            : 'fixed inset-x-0 bottom-0 z-40 bg-white rounded-t-2xl shadow-2xl p-4 border-t border-slate-100 md:relative md:bg-white md:rounded-2xl md:shadow-xl md:p-8 md:max-w-4xl md:border md:border-slate-100'
+          }
+        `}
+      >
+        {/* Mobile Collapsed State Preview Bar */}
+        {!isMobileExpanded && (
+          <div
+            onClick={() => setIsMobileExpanded(true)}
+            className="flex items-center justify-between cursor-pointer md:hidden"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">📍</span>
+              <div>
+                <div className="text-xs text-slate-400 uppercase font-semibold">One Way Taxi</div>
+                <div className="text-sm font-bold text-slate-800">Where to? (Enter Route)</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-2xl shadow-md"
+            >
+              Book Now
+            </button>
+          </div>
+        )}
 
-        {/* Dynamic Fare Estimator */}
-        <FareEstimator
-          distanceKm={distanceKm}
-          onDistanceChange={setDistanceKm}
-          selectedVehicleId={selectedVehicleId}
-          tripType={tripType}
-        />
+        {/* Full Form (Visible on Desktop OR when Mobile is Expanded) */}
+        <div className={!isMobileExpanded ? 'hidden md:block' : 'block'}>
+          {/* Mobile Sheet Drag Handle & Close Header */}
+          <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4 md:hidden">
+            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
+            <span className="font-bold text-slate-800 text-base">Book Outstation Taxi</span>
+            <button
+              onClick={() => setIsMobileExpanded(false)}
+              className="text-slate-400 hover:text-slate-800 text-lg font-bold p-1"
+            >
+              ✕
+            </button>
+          </div>
 
-        {/* Action Button */}
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full bg-accent hover:bg-amber-400 text-dark font-bold py-4 px-6 rounded-xl shadow-lg transition-all text-base sm:text-lg flex items-center justify-center gap-2 transform active:scale-[0.99]"
-        >
-          <span>⚡</span> Get Fare Estimate & Book Now
-        </button>
+          {/* Trip Type Tabs */}
+          <TripTabs activeTab={tripType} onChange={setTripType} />
+
+          {/* Location & Time Inputs */}
+          <LocationInputs
+            formData={formData}
+            onChange={handleInputChange}
+            errors={errors}
+          />
+
+          {/* Vehicle Category Selector */}
+          <VehicleSelector
+            selectedVehicleId={selectedVehicleId}
+            onSelect={setSelectedVehicleId}
+          />
+
+          {/* Dynamic Fare Estimator */}
+          <FareEstimator
+            distanceKm={distanceKm}
+            onDistanceChange={setDistanceKm}
+            selectedVehicleId={selectedVehicleId}
+            tripType={tripType}
+          />
+
+          {/* Action Button */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-500/25 transition-all text-base sm:text-lg flex items-center justify-center gap-2 transform active:scale-[0.99]"
+          >
+            <span>⚡</span> Get Fare Estimate & Book Now
+          </button>
+        </div>
       </div>
 
       {/* Confirmation Modal */}
@@ -125,7 +184,7 @@ const BookingWidget = forwardRef(function BookingWidget(props, ref) {
           distanceKm,
         }}
       />
-    </div>
+    </>
   );
 });
 

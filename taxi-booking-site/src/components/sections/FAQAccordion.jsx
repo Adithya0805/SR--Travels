@@ -11,11 +11,11 @@ export default function FAQAccordion() {
   return (
     <section id="faqs" className="py-16 md:py-24 bg-slate-50">
       <div className="container mx-auto px-4 max-w-3xl">
-        <div className="text-center mb-12">
-          <span className="text-accent font-semibold text-xs uppercase tracking-wider bg-amber-500/10 text-amber-800 px-3 py-1 rounded-full">
+        <div className="text-center mb-10 md:mb-12">
+          <span className="text-emerald-700 font-semibold text-xs uppercase tracking-wider bg-emerald-100/70 px-3 py-1 rounded-full">
             Got Questions?
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-dark mt-3">Frequently Asked Questions</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-3">Frequently Asked Questions</h2>
           <p className="text-slate-600 text-base mt-2">
             Everything you need to know about booking, fare calculation, and policies.
           </p>
@@ -27,14 +27,14 @@ export default function FAQAccordion() {
             return (
               <div
                 key={item.id}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm transition-all"
+                className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-md transition-all"
               >
                 <button
                   onClick={() => toggleItem(item.id)}
-                  className="w-full text-left p-5 flex items-center justify-between font-semibold text-base md:text-lg text-dark hover:text-accent transition-colors gap-4"
+                  className="w-full text-left p-5 flex items-center justify-between font-semibold text-base md:text-lg text-slate-900 hover:text-emerald-600 transition-colors gap-4"
                 >
                   <span>{item.question}</span>
-                  <span className={`text-xl transition-transform duration-200 ${isOpen ? 'rotate-45 text-accent' : 'text-slate-400'}`}>
+                  <span className={`text-xl transition-transform duration-200 ${isOpen ? 'rotate-45 text-emerald-600' : 'text-slate-400'}`}>
                     ➕
                   </span>
                 </button>

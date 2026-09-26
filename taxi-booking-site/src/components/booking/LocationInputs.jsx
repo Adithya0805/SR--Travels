@@ -8,21 +8,19 @@ export default function LocationInputs({ formData, onChange, errors }) {
         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
           Pickup City / Address *
         </label>
-        <div className="relative">
-          <input
-            type="text"
-            name="pickup"
-            value={formData.pickup || ''}
-            onChange={onChange}
-            placeholder="e.g. Ambur / Chennai"
-            required
-            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm font-medium text-dark focus:outline-none focus:ring-2 transition-all ${
-              errors?.pickup
-                ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
-                : 'border-slate-300 focus:border-accent focus:ring-amber-200 bg-slate-50/50'
-            }`}
-          />
-        </div>
+        <input
+          type="text"
+          name="pickup"
+          value={formData.pickup || ''}
+          onChange={onChange}
+          placeholder="e.g. Ambur / Chennai"
+          required
+          className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 transition-all shadow-sm ${
+            errors?.pickup
+              ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
+              : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-200 bg-slate-50/40'
+          }`}
+        />
         {errors?.pickup && (
           <p className="text-red-500 text-xs mt-1 font-medium">{errors.pickup}</p>
         )}
@@ -33,21 +31,19 @@ export default function LocationInputs({ formData, onChange, errors }) {
         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
           Drop City / Address *
         </label>
-        <div className="relative">
-          <input
-            type="text"
-            name="drop"
-            value={formData.drop || ''}
-            onChange={onChange}
-            placeholder="e.g. Chennai / Pondicherry"
-            required
-            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm font-medium text-dark focus:outline-none focus:ring-2 transition-all ${
-              errors?.drop
-                ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
-                : 'border-slate-300 focus:border-accent focus:ring-amber-200 bg-slate-50/50'
-            }`}
-          />
-        </div>
+        <input
+          type="text"
+          name="drop"
+          value={formData.drop || ''}
+          onChange={onChange}
+          placeholder="e.g. Chennai / Pondicherry"
+          required
+          className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 transition-all shadow-sm ${
+            errors?.drop
+              ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
+              : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-200 bg-slate-50/40'
+          }`}
+        />
         {errors?.drop && (
           <p className="text-red-500 text-xs mt-1 font-medium">{errors.drop}</p>
         )}
@@ -58,21 +54,19 @@ export default function LocationInputs({ formData, onChange, errors }) {
         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
           Pickup Date *
         </label>
-        <div className="relative">
-          <input
-            type="date"
-            name="date"
-            min={today}
-            value={formData.date || ''}
-            onChange={onChange}
-            required
-            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm font-medium text-dark focus:outline-none focus:ring-2 transition-all ${
-              errors?.date
-                ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
-                : 'border-slate-300 focus:border-accent focus:ring-amber-200 bg-slate-50/50'
-            }`}
-          />
-        </div>
+        <input
+          type="date"
+          name="date"
+          min={today}
+          value={formData.date || ''}
+          onChange={onChange}
+          required
+          className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 transition-all shadow-sm ${
+            errors?.date
+              ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
+              : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-200 bg-slate-50/40'
+          }`}
+        />
         {errors?.date && (
           <p className="text-red-500 text-xs mt-1 font-medium">{errors.date}</p>
         )}
@@ -83,20 +77,18 @@ export default function LocationInputs({ formData, onChange, errors }) {
         <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
           Pickup Time *
         </label>
-        <div className="relative">
-          <input
-            type="time"
-            name="time"
-            value={formData.time || ''}
-            onChange={onChange}
-            required
-            className={`w-full px-3.5 py-2.5 rounded-lg border text-sm font-medium text-dark focus:outline-none focus:ring-2 transition-all ${
-              errors?.time
-                ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
-                : 'border-slate-300 focus:border-accent focus:ring-amber-200 bg-slate-50/50'
-            }`}
-          />
-        </div>
+        <input
+          type="time"
+          name="time"
+          value={formData.time || ''}
+          onChange={onChange}
+          required
+          className={`w-full px-4 py-3 rounded-2xl border text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 transition-all shadow-sm ${
+            errors?.time
+              ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
+              : 'border-slate-200 focus:border-emerald-500 focus:ring-emerald-200 bg-slate-50/40'
+          }`}
+        />
         {errors?.time && (
           <p className="text-red-500 text-xs mt-1 font-medium">{errors.time}</p>
         )}

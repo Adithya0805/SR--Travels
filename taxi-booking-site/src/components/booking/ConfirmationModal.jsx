@@ -54,12 +54,13 @@ export default function ConfirmationModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white text-dark rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-slate-200 transform transition-all animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white text-slate-900 rounded-2xl max-w-lg w-full p-6 md:p-8 shadow-2xl relative border border-slate-100 transform transition-all animate-in fade-in zoom-in-95">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-dark font-bold text-xl p-1"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 font-bold text-xl p-1"
+          aria-label="Close dialog"
         >
           ✕
         </button>
@@ -68,38 +69,38 @@ export default function ConfirmationModal({
           <>
             {/* Title */}
             <div className="mb-4">
-              <span className="bg-accent/20 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+              <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                 Booking Summary
               </span>
-              <h2 className="text-2xl font-bold text-dark mt-2">Confirm Your Taxi Ride</h2>
-              <p className="text-slate-500 text-sm">Review your journey details & fare estimate</p>
+              <h2 className="text-2xl font-bold text-slate-900 mt-2">Confirm Your Taxi Ride</h2>
+              <p className="text-slate-500 text-sm">Review journey details & fare estimate</p>
             </div>
 
             {/* Journey Details */}
-            <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200 text-xs sm:text-sm space-y-2">
+            <div className="bg-slate-50 rounded-2xl p-4 mb-5 border border-slate-200 text-xs sm:text-sm space-y-2">
               <div className="flex justify-between pb-2 border-b border-slate-200">
                 <span className="text-slate-500">Trip Type</span>
-                <span className="font-semibold text-dark capitalize">{bookingData.tripType === 'oneway' ? 'One Way' : 'Round Trip'}</span>
+                <span className="font-semibold text-slate-900 capitalize">{bookingData.tripType === 'oneway' ? 'One Way' : 'Round Trip'}</span>
               </div>
 
               <div className="flex justify-between pb-2 border-b border-slate-200">
                 <span className="text-slate-500">Pickup</span>
-                <span className="font-semibold text-dark text-right max-w-[200px] truncate">{bookingData.pickup}</span>
+                <span className="font-semibold text-slate-900 text-right max-w-[200px] truncate">{bookingData.pickup}</span>
               </div>
 
               <div className="flex justify-between pb-2 border-b border-slate-200">
                 <span className="text-slate-500">Drop</span>
-                <span className="font-semibold text-dark text-right max-w-[200px] truncate">{bookingData.drop}</span>
+                <span className="font-semibold text-slate-900 text-right max-w-[200px] truncate">{bookingData.drop}</span>
               </div>
 
               <div className="flex justify-between pb-2 border-b border-slate-200">
                 <span className="text-slate-500">Date & Time</span>
-                <span className="font-semibold text-dark font-mono">{bookingData.date} at {bookingData.time}</span>
+                <span className="font-semibold text-slate-900 font-mono">{bookingData.date} at {bookingData.time}</span>
               </div>
 
               <div className="flex justify-between pb-2 border-b border-slate-200">
                 <span className="text-slate-500">Vehicle</span>
-                <span className="font-semibold text-dark">{selectedVehicle.name}</span>
+                <span className="font-semibold text-slate-900">{selectedVehicle.name}</span>
               </div>
 
               {/* Fare Breakdown */}
@@ -110,11 +111,11 @@ export default function ConfirmationModal({
                 </div>
 
                 <div className="flex justify-between text-slate-600 mt-1">
-                  <span>Driver Allowance (Bata)</span>
+                  <span>Driver Allowance</span>
                   <span className="font-mono font-medium">₹{fareResult.driverBata}</span>
                 </div>
 
-                <div className="flex justify-between text-base font-bold text-dark mt-3 pt-2 border-t border-slate-300">
+                <div className="flex justify-between text-base font-bold text-slate-900 mt-3 pt-2 border-t border-slate-300">
                   <span>Total Estimated Fare</span>
                   <span className="font-mono text-xl text-emerald-600">₹{fareResult.fare.toLocaleString('en-IN')}</span>
                 </div>
@@ -128,7 +129,7 @@ export default function ConfirmationModal({
                   Mobile Phone Number *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-400 font-mono text-sm">+91</span>
+                  <span className="absolute left-3.5 top-3 text-slate-400 font-mono text-sm">+91</span>
                   <input
                     type="tel"
                     maxLength={10}
@@ -139,10 +140,10 @@ export default function ConfirmationModal({
                     }}
                     placeholder="e.g. 9876543210"
                     required
-                    className={`w-full pl-12 pr-3 py-2.5 rounded-lg border text-sm font-mono font-medium text-dark focus:outline-none focus:ring-2 transition-all ${
+                    className={`w-full pl-12 pr-4 py-3 rounded-2xl border text-sm font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 transition-all ${
                       phoneError
                         ? 'border-red-500 focus:ring-red-300 bg-red-50/20'
-                        : 'border-slate-300 focus:border-trust focus:ring-emerald-200'
+                        : 'border-slate-300 focus:border-emerald-500 focus:ring-emerald-200'
                     }`}
                   />
                 </div>
@@ -153,7 +154,7 @@ export default function ConfirmationModal({
 
               <button
                 type="submit"
-                className="w-full bg-trust hover:bg-emerald-600 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition-all text-base flex items-center justify-center gap-2"
+                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all text-base flex items-center justify-center gap-2"
               >
                 <span>✅</span> Confirm Booking
               </button>
@@ -161,16 +162,16 @@ export default function ConfirmationModal({
           </>
         ) : (
           <div className="text-center py-6 space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-trust text-3xl rounded-full flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 text-3xl rounded-full flex items-center justify-center mx-auto">
               ✓
             </div>
-            <h3 className="text-2xl font-bold text-dark">Booking Confirmed!</h3>
+            <h3 className="text-2xl font-bold text-slate-900">Booking Confirmed!</h3>
             <p className="text-slate-600 text-sm max-w-xs mx-auto">
-              Our 24/7 dispatch team is assigning your vehicle. You will receive an SMS and WhatsApp confirmation shortly.
+              Our 24/7 dispatch team is assigning your vehicle. You will receive SMS & WhatsApp confirmation shortly.
             </p>
             <button
               onClick={onClose}
-              className="mt-4 bg-dark text-white font-medium px-6 py-2.5 rounded-lg text-sm hover:bg-slate-800"
+              className="mt-4 bg-slate-900 text-white font-medium px-6 py-2.5 rounded-2xl text-sm hover:bg-slate-800 shadow-md"
             >
               Done
             </button>

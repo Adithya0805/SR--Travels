@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 import TopBar from './components/layout/TopBar';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -15,8 +15,10 @@ import FloatingCTAs from './components/shared/FloatingCTAs';
 
 export default function App() {
   const bookingWidgetRef = useRef(null);
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
   const handleBookClick = () => {
+    setIsMobileExpanded(true);
     const widget = document.getElementById('booking-widget');
     if (widget) {
       widget.scrollIntoView({ behavior: 'smooth' });
@@ -35,7 +37,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-dark font-sans selection:bg-accent selection:text-dark">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-emerald-500 selection:text-white">
       {/* 1. Top Bar */}
       <TopBar />
 
@@ -44,8 +46,13 @@ export default function App() {
 
       {/* 3. Hero + Booking Widget */}
       <main>
-        <Hero />
-        <BookingWidget ref={bookingWidgetRef} />
+        <Hero onBookClick={handleBookClick} />
+        
+        <BookingWidget
+          ref={bookingWidgetRef}
+          isMobileExpanded={isMobileExpanded}
+          setIsMobileExpanded={setIsMobileExpanded}
+        />
 
         {/* 4. Why Choose Us */}
         <WhyChooseUs />
@@ -72,8 +79,11 @@ export default function App() {
       {/* 11. Footer */}
       <Footer />
 
-      {/* 12. Floating Mobile CTAs */}
-      <FloatingCTAs />
+      {/* 12. Persistent Floating "Book Now" Pill Button on Mobile */}
+      <FloatingCTAs
+        isMobileSheetOpen={isMobileExpanded}
+        onOpenSheet={() => setIsMobileExpanded(true)}
+      />
     </div>
   );
 }

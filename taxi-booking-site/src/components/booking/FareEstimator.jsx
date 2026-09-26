@@ -19,7 +19,7 @@ export default function FareEstimator({
   });
 
   return (
-    <div className="bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-200 mb-6">
+    <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-sm mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="flex-1">
           <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
@@ -31,15 +31,15 @@ export default function FareEstimator({
             value={distanceKm}
             onChange={(e) => onDistanceChange(e.target.value)}
             placeholder="e.g. 180"
-            className="w-full sm:w-48 px-3 py-2 rounded-lg border border-slate-300 font-mono font-medium text-sm focus:outline-none focus:border-accent bg-white"
+            className="w-full sm:w-48 px-3.5 py-2 rounded-2xl border border-slate-300 font-mono font-medium text-sm focus:outline-none focus:border-emerald-500 bg-white shadow-sm"
           />
         </div>
 
-        <div className="text-right sm:text-right">
+        <div className="text-left sm:text-right">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Estimated Total Fare
           </div>
-          <div className="text-2xl sm:text-3xl font-bold font-mono text-dark">
+          <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-600">
             ₹{fareResult.fare.toLocaleString('en-IN')}
           </div>
         </div>
@@ -49,27 +49,28 @@ export default function FareEstimator({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 text-xs text-slate-600">
         <div>
           <span className="block text-slate-400">Billable Distance</span>
-          <span className="font-mono font-semibold text-slate-800">{fareResult.billableKm} km</span>
+          <span className="font-mono font-semibold text-slate-900">{fareResult.billableKm} km</span>
         </div>
 
         <div>
           <span className="block text-slate-400">Rate / KM</span>
-          <span className="font-mono font-semibold text-slate-800">₹{ratePerKm}/km</span>
+          <span className="font-mono font-semibold text-slate-900">₹{ratePerKm}/km</span>
         </div>
 
         <div>
-          <span className="block text-slate-400">Driver Bata</span>
-          <span className="font-mono font-semibold text-slate-800">₹{fareResult.driverBata}</span>
+          <span className="block text-slate-400">Driver Allowance</span>
+          <span className="font-mono font-semibold text-slate-900">₹{fareResult.driverBata}</span>
         </div>
 
         <div>
-          <span className="block text-slate-400">Tolls / State Permits</span>
-          <span className="font-semibold text-amber-700">Extra at actuals</span>
+          <span className="block text-slate-400">Tolls & Permits</span>
+          <span className="font-semibold text-slate-700">Extra at actuals</span>
         </div>
       </div>
 
+      {/* Min-km note (Allowed Gold Accent Usage) */}
       {fareResult.minKmApplied && (
-        <div className="mt-3 pt-2 border-t border-slate-200 text-xs text-amber-800 flex items-center gap-1.5 font-medium">
+        <div className="mt-3 pt-2.5 border-t border-slate-200 text-xs text-amber-900 bg-amber-500/10 border border-amber-300/60 rounded-2xl p-3 flex items-center gap-2 font-medium">
           <span>ℹ️</span>
           <span>
             Minimum distance rule applied ({fareResult.minKm} km min for {tripType === 'oneway' ? 'One Way' : 'Round Trip'}).

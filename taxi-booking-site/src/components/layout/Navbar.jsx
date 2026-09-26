@@ -17,12 +17,12 @@ export default function Navbar({ onBookClick }) {
 
   return (
     <>
-      <header className="bg-white text-dark shadow-sm sticky top-0 z-40">
+      <header className="bg-white text-slate-900 shadow-sm sticky top-0 z-40">
         <div className="container mx-auto px-4 py-3.5 flex items-center justify-between">
           {/* Logo */}
           <a href="#" className="font-bold text-2xl tracking-tight flex items-center gap-1.5">
-            <span className="text-dark">Srinath</span>
-            <span className="bg-accent text-dark font-black text-xs px-2 py-1 rounded">TAXI</span>
+            <span className="text-slate-900">Srinath</span>
+            <span className="bg-emerald-500 text-white font-black text-xs px-2 py-1 rounded-lg">TAXI</span>
           </a>
 
           {/* Desktop Nav Links */}
@@ -31,7 +31,7 @@ export default function Navbar({ onBookClick }) {
               <a
                 key={idx}
                 href={link.href}
-                className="text-sm font-medium text-slate-700 hover:text-accent transition-colors"
+                className="text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors"
               >
                 {link.name}
               </a>
@@ -42,7 +42,7 @@ export default function Navbar({ onBookClick }) {
           <div className="flex items-center gap-3">
             <button
               onClick={onBookClick}
-              className="bg-trust hover:bg-emerald-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition-all shadow-sm hidden sm:inline-flex items-center gap-1.5"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-2xl text-sm transition-all shadow-md hidden sm:inline-flex items-center gap-1.5"
             >
               <span>⚡</span> Book Now
             </button>
@@ -50,7 +50,7 @@ export default function Navbar({ onBookClick }) {
             {/* Hamburger Button */}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="md:hidden p-2 text-dark hover:text-accent focus:outline-none"
+              className="md:hidden p-2 text-slate-900 hover:text-emerald-600 focus:outline-none"
               aria-label="Open navigation menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

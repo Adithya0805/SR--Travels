@@ -13,18 +13,18 @@ export default function VehicleSelector({ selectedVehicleId, onSelect }) {
             <div
               key={vehicle.id}
               onClick={() => onSelect(vehicle.id)}
-              className={`cursor-pointer rounded-xl p-4 border-2 transition-all flex flex-col justify-between relative ${
+              className={`cursor-pointer rounded-2xl p-4 transition-all flex flex-col justify-between relative ${
                 isSelected
-                  ? 'border-accent bg-amber-500/10 shadow-sm'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
+                  ? 'border-2 border-emerald-500 bg-emerald-50/40 shadow-md'
+                  : 'border border-slate-200 bg-white hover:border-slate-300 shadow-sm hover:shadow-md'
               }`}
             >
               <div className="flex items-start justify-between mb-2">
-                <div className="font-semibold text-sm text-dark">{vehicle.name}</div>
+                <div className="font-bold text-sm text-slate-900">{vehicle.name}</div>
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  isSelected ? 'border-amber-600 bg-accent' : 'border-slate-300'
+                  isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300'
                 }`}>
-                  {isSelected && <div className="w-2 h-2 rounded-full bg-dark" />}
+                  {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
                 </div>
               </div>
 
@@ -32,7 +32,7 @@ export default function VehicleSelector({ selectedVehicleId, onSelect }) {
                 <span className="text-slate-600 flex items-center gap-1 font-medium">
                   👥 {vehicle.seats} Seats
                 </span>
-                <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                <span className="font-mono font-bold text-emerald-700 bg-emerald-100/60 px-2.5 py-0.5 rounded-full">
                   ₹{vehicle.ratePerKm}/km
                 </span>
               </div>
