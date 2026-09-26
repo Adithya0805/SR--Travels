@@ -1,6 +1,6 @@
 import fleetData from '../../data/fleet.json';
 
-export default function VehicleSelector({ selectedVehicleId, onSelect }) {
+export default function VehicleSelector({ selectedVehicleId, onSelect, rentalType = 'with-driver' }) {
   return (
     <div className="mb-6">
       <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2.5">
@@ -9,6 +9,8 @@ export default function VehicleSelector({ selectedVehicleId, onSelect }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         {fleetData.map((vehicle) => {
           const isSelected = selectedVehicleId === vehicle.id;
+          const displayRate = rentalType === 'self-drive' ? `₹${vehicle.ratePerDay}/day` : `₹${vehicle.ratePerKm}/km`;
+
           return (
             <div
               key={vehicle.id}
@@ -33,7 +35,7 @@ export default function VehicleSelector({ selectedVehicleId, onSelect }) {
                   👥 {vehicle.seats} Seats
                 </span>
                 <span className="font-mono font-bold text-emerald-700 bg-emerald-100/60 px-2.5 py-0.5 rounded-full">
-                  ₹{vehicle.ratePerKm}/km
+                  {displayRate}
                 </span>
               </div>
             </div>

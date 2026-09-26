@@ -15,12 +15,15 @@ export default function ConfirmationModal({
   if (!isOpen) return null;
 
   const selectedVehicle = fleetData.find((v) => v.id === bookingData.vehicleId) || fleetData[0];
-  const numericDistance = Math.max(1, Number(bookingData.distanceKm) || 150);
+  const isSelfDrive = bookingData.rentalType === 'self-drive';
 
   const fareResult = calculateFare({
-    distanceKm: numericDistance,
+    distanceKm: Number(bookingData.distanceKm) || 150,
     tripType: bookingData.tripType,
     ratePerKm: selectedVehicle.ratePerKm,
+    rentalType: bookingData.rentalType,
+    daysCount: bookingData.daysCount,
+    ratePerDay: selectedVehicle.ratePerDay,
   });
 
   const handleConfirm = (e) => {
@@ -38,9 +41,6 @@ export default function ConfirmationModal({
       ...bookingData,
       phone,
       vehicleName: selectedVehicle.name,
-      ratePerKm: selectedVehicle.ratePerKm,
-      billableKm: fareResult.billableKm,
-      driverBata: fareResult.driverBata,
       totalFare: fareResult.fare,
       bookedAt: new Date().toISOString(),
     };
@@ -72,26 +72,39 @@ export default function ConfirmationModal({
               <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                 Booking Summary
               </span>
-              <h2 className="text-2xl font-bold text-slate-900 mt-2">Confirm Your Taxi Ride</h2>
-              <p className="text-slate-500 text-sm">Review journey details & fare estimate</p>
+              <h2 className="text-2xl font-bold text-slate-900 mt-2">
+                {isSelfDrive ? 'Confirm Self-Drive Car Rental' : 'Confirm Your Taxi Ride'}
+              </h2>
+              <p className="text-slate-500 text-sm">Review details & fare estimate</p>
             </div>
 
             {/* Journey Details */}
             <div className="bg-slate-50 rounded-2xl p-4 mb-5 border border-slate-200 text-xs sm:text-sm space-y-2">
               <div className="flex justify-between pb-2 border-b border-slate-200">
-                <span className="text-slate-500">Trip Type</span>
-                <span className="font-semibold text-slate-900 capitalize">{bookingData.tripType === 'oneway' ? 'One Way' : 'Round Trip'}</span>
+                <span className="text-slate-500">Service Mode</span>
+                <span className="font-semibold text-emerald-700 capitalize">
+                  {isSelfDrive ? '🚘 Self Drive Rental' : '👨‍✈️ With Driver Taxi'}
+                </span>
               </div>
 
+              {!isSelfDrive && (
+                <div className="flex justify-between pb-2 border-b border-slate-200">
+                  <span className="text-slate-500">Trip Type</span>
+                  <span className="font-semibold text-slate-900 capitalize">{bookingData.tripType === 'oneway' ? 'One Way' : 'Round Trip'}</span>
+                </div>
+              )}
+
               <div className="flex justify-between pb-2 border-b border-slate-200">
-                <span className="text-slate-500">Pickup</span>
+                <span className="text-slate-500">Pickup Location</span>
                 <span className="font-semibold text-slate-900 text-right max-w-[200px] truncate">{bookingData.pickup}</span>
               </div>
 
-              <div className="flex justify-between pb-2 border-b border-slate-200">
-                <span className="text-slate-500">Drop</span>
-                <span className="font-semibold text-slate-900 text-right max-w-[200px] truncate">{bookingData.drop}</span>
-              </div>
+              {!isSelfDrive && (
+                <div className="flex justify-between pb-2 border-b border-slate-200">
+                  <span className="text-slate-500">Drop Location</span>
+                  <span className="font-semibold text-slate-900 text-right max-w-[200px] truncate">{bookingData.drop}</span>
+                </div>
+              )}
 
               <div className="flex justify-between pb-2 border-b border-slate-200">
                 <span className="text-slate-500">Date & Time</span>
@@ -105,15 +118,24 @@ export default function ConfirmationModal({
 
               {/* Fare Breakdown */}
               <div className="pt-2">
-                <div className="flex justify-between text-slate-600">
-                  <span>Billable Distance ({fareResult.billableKm} km @ ₹{selectedVehicle.ratePerKm}/km)</span>
-                  <span className="font-mono font-medium">₹{(fareResult.billableKm * selectedVehicle.ratePerKm).toLocaleString('en-IN')}</span>
-                </div>
+                {isSelfDrive ? (
+                  <div className="flex justify-between text-slate-600">
+                    <span>Rental Days ({fareResult.daysCount} Day(s) @ ₹{selectedVehicle.ratePerDay}/day)</span>
+                    <span className="font-mono font-medium">₹{(fareResult.daysCount * selectedVehicle.ratePerDay).toLocaleString('en-IN')}</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between text-slate-600">
+                      <span>Billable Distance ({fareResult.billableKm} km @ ₹{selectedVehicle.ratePerKm}/km)</span>
+                      <span className="font-mono font-medium">₹{(fareResult.billableKm * selectedVehicle.ratePerKm).toLocaleString('en-IN')}</span>
+                    </div>
 
-                <div className="flex justify-between text-slate-600 mt-1">
-                  <span>Driver Allowance</span>
-                  <span className="font-mono font-medium">₹{fareResult.driverBata}</span>
-                </div>
+                    <div className="flex justify-between text-slate-600 mt-1">
+                      <span>Driver Allowance</span>
+                      <span className="font-mono font-medium">₹{fareResult.driverBata}</span>
+                    </div>
+                  </>
+                )}
 
                 <div className="flex justify-between text-base font-bold text-slate-900 mt-3 pt-2 border-t border-slate-300">
                   <span>Total Estimated Fare</span>
