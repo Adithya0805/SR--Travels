@@ -1,4 +1,5 @@
 import fleetData from '../../data/fleet.json';
+import siteConfig from '../../data/siteConfig.json';
 
 export default function TariffTable() {
   return (
@@ -41,10 +42,10 @@ export default function TariffTable() {
                     ₹{v.ratePerKm}/km
                   </td>
                   <td className="py-4 px-6 text-center font-mono text-slate-700">
-                    ₹400 / day
+                    ₹{siteConfig.driverBata} / day
                   </td>
                   <td className="py-4 px-6 text-right text-xs text-slate-600 font-medium">
-                    130 km (One Way) <br /> 250 km (Round Trip)
+                    {siteConfig.minKmOneWay} km (One Way) <br /> {siteConfig.minKmRoundTrip} km (Round Trip)
                   </td>
                 </tr>
               ))}
@@ -71,12 +72,12 @@ export default function TariffTable() {
 
                 <div>
                   <span className="block text-slate-400">Driver Allowance</span>
-                  <span className="font-mono font-medium text-slate-900">₹400 / day</span>
+                  <span className="font-mono font-medium text-slate-900">₹{siteConfig.driverBata} / day</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-slate-200 text-xs text-slate-600 font-medium">
-                ℹ️ Min KM Rule: 130 km One Way | 250 km Round Trip
+                ℹ️ Min KM Rule: {siteConfig.minKmOneWay} km One Way | {siteConfig.minKmRoundTrip} km Round Trip
               </div>
             </div>
           ))}

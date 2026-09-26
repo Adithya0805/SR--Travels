@@ -1,0 +1,13 @@
+{
+  "businessName": "PLACEHOLDER",
+  "phone": "+91XXXXXXXXXX",
+  "whatsapp": "91XXXXXXXXXX",
+  "email": "support@yourdomain.com",
+  "serviceAreas": ["PLACEHOLDER"],
+  "rentalType": ["self-drive", "with-driver"],
+  "pricingModel": "per-km-plus-bata",
+  "minKmOneWay": 130,
+  "minKmRoundTrip": 250,
+  "driverBata": 400,
+  "cancellationPolicy": "PLACEHOLDER"
+}

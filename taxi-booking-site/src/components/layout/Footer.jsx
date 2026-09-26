@@ -1,4 +1,8 @@
+import siteConfig from '../../data/siteConfig.json';
+
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer id="footer" className="bg-slate-900 text-white pt-12 pb-24 md:pb-8 border-t border-slate-800">
       <div className="container mx-auto px-4">
@@ -6,11 +10,11 @@ export default function Footer() {
           {/* Column 1: About */}
           <div className="space-y-4">
             <div className="font-bold text-2xl tracking-tight flex items-center gap-1.5">
-              <span>Srinath</span>
+              <span>{siteConfig.businessName !== 'PLACEHOLDER' ? siteConfig.businessName : 'Srinath'}</span>
               <span className="bg-emerald-500 text-white font-black text-xs px-2 py-1 rounded-lg">TAXI</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Tamil Nadu's premier one-way outstation taxi service. Transparent per-km rates, zero return charges, and guaranteed 24/7 doorstep dispatch.
+              Premier one-way outstation taxi service. Transparent per-km rates, zero return charges, and guaranteed 24/7 doorstep dispatch.
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a href="#" className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-emerald-500 hover:text-white transition-colors" aria-label="Facebook">
@@ -22,7 +26,7 @@ export default function Footer() {
               <a href="#" className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-emerald-500 hover:text-white transition-colors" aria-label="Instagram">
                 IG
               </a>
-              <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-emerald-500 hover:text-white transition-colors" aria-label="WhatsApp">
+              <a href={`https://wa.me/${siteConfig.whatsapp}`} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-emerald-500 hover:text-white transition-colors" aria-label="WhatsApp">
                 WA
               </a>
             </div>
@@ -58,15 +62,15 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-slate-400">
               <li className="flex items-start gap-2.5">
                 <span className="text-emerald-400 mt-0.5">📍</span>
-                <span>No. 45, Anna Salai, Guindy, Chennai, Tamil Nadu - 600032</span>
+                <span>{siteConfig.serviceAreas && siteConfig.serviceAreas[0] !== 'PLACEHOLDER' ? siteConfig.serviceAreas.join(', ') : 'Chennai, Tamil Nadu, South India'}</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <span className="text-emerald-400">📞</span>
-                <a href="tel:+919876543210" className="hover:text-white font-mono">+91 98765 43210</a>
+                <a href={`tel:${siteConfig.phone}`} className="hover:text-white font-mono">{siteConfig.phone}</a>
               </li>
               <li className="flex items-center gap-2.5">
                 <span className="text-emerald-400">✉️</span>
-                <a href="mailto:support@srinathtravels.com" className="hover:text-white">support@srinathtravels.com</a>
+                <a href={`mailto:${siteConfig.email}`} className="hover:text-white">{siteConfig.email}</a>
               </li>
               <li className="flex items-center gap-2.5 text-emerald-400 font-medium">
                 <span>🟢</span>
@@ -78,7 +82,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p>© 2026 Srinath Travels. All rights reserved.</p>
+          <p>© {currentYear} {siteConfig.businessName !== 'PLACEHOLDER' ? siteConfig.businessName : 'Srinath Travels'}. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-slate-400">Privacy Policy</a>
             <a href="#" className="hover:text-slate-400">Terms of Service</a>
