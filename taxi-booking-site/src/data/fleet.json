@@ -1,5 +1,0 @@
-[
-  { "id": "sedan", "name": "Sedan (Swift Dzire/Amaze)", "seats": 4, "ratePerKm": 14, "ratePerDay": 1800 },
-  { "id": "suv", "name": "SUV (Marazzo/Xylo)", "seats": 6, "ratePerKm": 20, "ratePerDay": 2800 },
-  { "id": "muv", "name": "MUV (Innova)", "seats": 7, "ratePerKm": 21, "ratePerDay": 3200 }
-]
