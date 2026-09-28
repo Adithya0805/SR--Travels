@@ -10,9 +10,11 @@ export interface Vehicle {
 
 export interface SiteConfig {
   businessName: string;
+  tagline: string;
   phone: string;
   whatsapp: string;
   serviceRegion: string;
+  seoKeywords: string[];
   vehicles: Vehicle[];
   minKmOneWay: number;
   minKmRoundTrip: number;
@@ -22,9 +24,18 @@ export interface SiteConfig {
 
 export const siteConfig: SiteConfig = {
   businessName: "SR Travels",
+  tagline: "Car Rental & Travels, Tamil Nadu",
   phone: "+91XXXXXXXXXX",
   whatsapp: "91XXXXXXXXXX",
   serviceRegion: "Tamil Nadu",
+  seoKeywords: [
+    "SR Travels",
+    "Car Rental Tamil Nadu",
+    "Taxi Service",
+    "Outstation Taxi",
+    "Self Drive Car",
+    "Cab Booking",
+  ],
   vehicles: [
     {
       id: "sedan",
