@@ -15,9 +15,9 @@ const siteUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: siteConfig.metaTitle,
-  description: siteConfig.metaDescription,
-  keywords: siteConfig.seoKeywords,
+  title: siteConfig.title,
+  description: siteConfig.description,
+  keywords: siteConfig.keywords,
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
     shortcut: "/brand/favicon-32.png",
   },
   openGraph: {
-    title: siteConfig.metaTitle,
-    description: `Book outstation cabs and self-drive cars across ${siteConfig.serviceRegion} instantly. Transparent fares, 24/7 support.`,
+    title: siteConfig.title,
+    description: siteConfig.description,
     siteName: siteConfig.businessName,
     locale: "en_IN",
     type: "website",
@@ -41,14 +41,14 @@ export const metadata: Metadata = {
         url: "/brand/og-image.png",
         width: 1200,
         height: 630,
-        alt: siteConfig.metaTitle,
+        alt: siteConfig.title,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: siteConfig.metaTitle,
-    description: `Outstation & local taxi booking service in ${siteConfig.serviceRegion}.`,
+    title: siteConfig.title,
+    description: siteConfig.description,
     images: ["/brand/og-image.png"],
   },
   appleWebApp: {
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#10B981",
+  themeColor: siteConfig.brand.navy,
   width: "device-width",
   initialScale: 1,
   // user-scalable and maximum-scale intentionally omitted for accessibility

@@ -18,9 +18,16 @@ export interface SiteConfig {
   /** Digits only, no plus or spaces — for wa.me links */
   whatsapp: string;
   serviceRegion: string;
-  seoKeywords: string[];
+  /** Primary page title */
+  title: string;
+  /** Primary meta description */
+  description: string;
+  /** SEO keywords */
+  keywords: string[];
+  /** Backward-compatible aliases */
   metaTitle: string;
   metaDescription: string;
+  seoKeywords: string[];
   siteUrl: string;
   /** Brand colour tokens sampled from the logo source image */
   brand: {
@@ -41,6 +48,21 @@ export const siteConfig: SiteConfig = {
   phoneDisplay: "+91 98948 46070",
   whatsapp: "919894846070",
   serviceRegion: "Tamil Nadu",
+  title: "SR Travels - Car Rental & Travels, Tamil Nadu",
+  description:
+    "Book outstation trips and self-drive cars across Tamil Nadu with transparent fares.",
+  keywords: [
+    "SR Travels",
+    "Car Rental Tamil Nadu",
+    "Taxi Service",
+    "Outstation Taxi",
+    "Self Drive Car",
+    "Cab Booking",
+    "Tamil Nadu Travels",
+  ],
+  metaTitle: "SR Travels - Car Rental & Travels, Tamil Nadu",
+  metaDescription:
+    "Book outstation trips and self-drive cars across Tamil Nadu with transparent fares.",
   seoKeywords: [
     "SR Travels",
     "Car Rental Tamil Nadu",
@@ -48,10 +70,8 @@ export const siteConfig: SiteConfig = {
     "Outstation Taxi",
     "Self Drive Car",
     "Cab Booking",
+    "Tamil Nadu Travels",
   ],
-  metaTitle: "SR Travels - Car Rental & Travels, Tamil Nadu",
-  metaDescription:
-    "SR Travels outstation & local taxi booking service in Tamil Nadu. One-way, round-trip & self-drive cars at transparent rates.",
   siteUrl: "https://sr-travels-tau.vercel.app",
   brand: {
     /** Sampled from logo source: dark navy blue */

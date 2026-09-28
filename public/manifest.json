@@ -1,7 +1,7 @@
 {
   "name": "SR Travels",
   "short_name": "SR Travels",
-  "description": "SR Travels – Car Rental & Travels, Tamil Nadu. Outstation taxi booking at transparent rates.",
+  "description": "Book outstation trips and self-drive cars across Tamil Nadu with transparent fares.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
