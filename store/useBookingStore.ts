@@ -1,17 +1,14 @@
 import { create } from "zustand";
-import { getRoute, MapLocation } from "@/lib/maps";
-import { Vehicle, siteConfig } from "@/config/siteConfig";
+import { getRoute } from "@/lib/maps";
+import { siteConfig } from "@/config/siteConfig";
 import { calculateFare } from "@/lib/fare";
-import { supabase } from "@/lib/supabase";
 
-export type BookingStep =
-  | "pickup"
-  | "drop"
-  | "route"
-  | "details"
-  | "vehicles"
-  | "summary"
-  | "done";
+export interface LocationPoint {
+  label: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
 
 export interface RouteData {
   distanceKm: number;
@@ -19,24 +16,24 @@ export interface RouteData {
   geometry: [number, number][];
 }
 
-export interface TripDetails {
-  tripType: "one-way" | "round-trip";
-  serviceMode: "with-driver" | "self-drive";
-  pickupDate: string;
-  pickupTime: string;
-  days: number;
-  passengers: number;
-}
+export type ScreenState = "home" | "vehicles" | "review" | "done";
+export type TripType = "one-way" | "round-trip";
+export type DriveMode = "with-driver" | "self-drive";
 
 export interface SavedBookingRecord {
   bookingId: string;
   customerName: string;
   customerPhone: string;
-  pickup: MapLocation | null;
-  drop: MapLocation | null;
-  distanceKm: number;
-  tripDetails: TripDetails;
-  selectedVehicle: Vehicle;
+  pickup: LocationPoint | null;
+  drop: LocationPoint | null;
+  date: string;
+  time: string;
+  tripType: TripType;
+  driveMode: DriveMode;
+  days: number;
+  passengers: number;
+  vehicleId: string;
+  route: RouteData | null;
   totalFare: number;
   createdAt: string;
 }
@@ -52,33 +49,42 @@ const generateBookingCode = () => {
   return `SRT-${code}`;
 };
 
-interface BookingState {
-  step: BookingStep;
-  pickup: MapLocation | null;
-  drop: MapLocation | null;
+interface BookingStore {
+  // Required core state schema
+  pickup: LocationPoint | null;
+  drop: LocationPoint | null;
+  date: string;
+  time: string;
+  tripType: TripType;
+  driveMode: DriveMode;
+  days: number;
+  passengers: number;
+  vehicleId: string;
   route: RouteData | null;
+  screen: ScreenState;
+
+  // Supplementary states for flow & booking
   isRouteLoading: boolean;
   routeError: string | null;
-
-  // Trip details state
-  tripDetails: TripDetails;
-  selectedVehicle: Vehicle | null;
-
-  // Customer & Booking state
   bookingId: string | null;
   customerName: string;
   customerPhone: string;
   isSubmittingBooking: boolean;
 
-  setStep: (step: BookingStep) => void;
-  setPickup: (location: MapLocation | null) => void;
-  setDrop: (location: MapLocation | null) => void;
-  setTripDetails: (details: Partial<TripDetails>) => void;
-  setSelectedVehicle: (vehicle: Vehicle | null) => void;
-  confirmPickup: (location: MapLocation) => void;
-  confirmDrop: (location: MapLocation) => void;
-  confirmTripDetails: (details: TripDetails) => void;
-  confirmVehicleSelection: (vehicle: Vehicle) => void;
+  // Actions
+  setPickup: (pickup: LocationPoint | null) => void;
+  setDrop: (drop: LocationPoint | null) => void;
+  setDate: (date: string) => void;
+  setTime: (time: string) => void;
+  setTripType: (tripType: TripType) => void;
+  setDriveMode: (driveMode: DriveMode) => void;
+  setDays: (days: number) => void;
+  setPassengers: (passengers: number) => void;
+  setVehicleId: (vehicleId: string) => void;
+  setRoute: (route: RouteData | null) => void;
+  setScreen: (screen: ScreenState) => void;
+
+  fetchRoute: () => Promise<RouteData | null>;
   saveBookingToSupabase: (
     name: string,
     phone: string,
@@ -86,73 +92,94 @@ interface BookingState {
     formStartTime?: number
   ) => Promise<string>;
   rebook: (record: SavedBookingRecord) => void;
-  fetchRoute: () => Promise<void>;
   resetBooking: () => void;
 }
 
-export const useBookingStore = create<BookingState>((set, get) => ({
-  step: "pickup",
+export const useBookingStore = create<BookingStore>((set, get) => ({
   pickup: null,
   drop: null,
+  date: getTodayString(),
+  time: "09:00",
+  tripType: "one-way",
+  driveMode: "with-driver",
+  days: 1,
+  passengers: 1,
+  vehicleId: siteConfig.vehicles[0]?.id || "sedan",
   route: null,
+  screen: "home",
+
   isRouteLoading: false,
   routeError: null,
-
-  tripDetails: {
-    tripType: "one-way",
-    serviceMode: "with-driver",
-    pickupDate: getTodayString(),
-    pickupTime: "09:00",
-    days: 1,
-    passengers: 1,
-  },
-  selectedVehicle: siteConfig.vehicles[0] || null,
-
   bookingId: null,
   customerName: "",
   customerPhone: "",
   isSubmittingBooking: false,
 
-  setStep: (step) => set({ step }),
-  setPickup: (pickup) => set({ pickup }),
-  setDrop: (drop) => set({ drop }),
-  setSelectedVehicle: (selectedVehicle) => set({ selectedVehicle }),
-
-  setTripDetails: (details) =>
-    set((state) => ({
-      tripDetails: { ...state.tripDetails, ...details },
-    })),
-
-  confirmPickup: (location) => {
-    set({
-      pickup: location,
-      step: "drop",
-      drop: get().drop || {
-        lat: location.lat + 0.05,
-        lng: location.lng + 0.05,
-        displayName: "",
-        shortName: "",
-      },
-    });
+  setPickup: (pickup) => {
+    set({ pickup, route: null, routeError: null });
   },
 
-  confirmDrop: (location) => {
-    set({ drop: location, step: "route" });
-    get().fetchRoute();
+  setDrop: (drop) => {
+    set({ drop, route: null, routeError: null });
   },
 
-  confirmTripDetails: (details) => {
-    set({
-      tripDetails: details,
-      step: "vehicles",
-    });
-  },
+  setDate: (date) => set({ date }),
+  setTime: (time) => set({ time }),
+  setTripType: (tripType) => set({ tripType }),
+  setDriveMode: (driveMode) => set({ driveMode }),
+  setDays: (days) => set({ days: Math.max(1, days) }),
+  setPassengers: (passengers) => set({ passengers: Math.max(1, passengers) }),
+  setVehicleId: (vehicleId) => set({ vehicleId }),
+  setRoute: (route) => set({ route }),
+  setScreen: (screen) => set({ screen }),
 
-  confirmVehicleSelection: (vehicle) => {
-    set({
-      selectedVehicle: vehicle,
-      step: "summary",
-    });
+  fetchRoute: async () => {
+    const { pickup, drop } = get();
+    if (!pickup || !drop) return null;
+
+    set({ isRouteLoading: true, routeError: null });
+
+    try {
+      const origin = {
+        lat: pickup.lat,
+        lng: pickup.lng,
+        displayName: pickup.address,
+        shortName: pickup.label,
+      };
+      const destination = {
+        lat: drop.lat,
+        lng: drop.lng,
+        displayName: drop.address,
+        shortName: drop.label,
+      };
+
+      const routeResult = await getRoute(origin, destination);
+      if (!routeResult || routeResult.distanceKm === 0) {
+        throw new Error("Unable to calculate driving route between selected points.");
+      }
+
+      const routeData: RouteData = {
+        distanceKm: routeResult.distanceKm,
+        durationMin: routeResult.durationMins,
+        geometry: routeResult.coordinates,
+      };
+
+      set({
+        route: routeData,
+        isRouteLoading: false,
+        routeError: null,
+      });
+
+      return routeData;
+    } catch (err: any) {
+      console.error("Route calculation error:", err);
+      const errMsg = err?.message || "Failed to calculate route. Please verify addresses.";
+      set({
+        isRouteLoading: false,
+        routeError: errMsg,
+      });
+      return null;
+    }
   },
 
   saveBookingToSupabase: async (
@@ -162,22 +189,35 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     formStartTime?: number
   ) => {
     set({ isSubmittingBooking: true });
-    const { pickup, drop, route, tripDetails, selectedVehicle } = get();
-    const vehicle = selectedVehicle || siteConfig.vehicles[0];
+    const {
+      pickup,
+      drop,
+      route,
+      date,
+      time,
+      tripType,
+      driveMode,
+      days,
+      vehicleId,
+    } = get();
+
+    const vehicle =
+      siteConfig.vehicles.find((v) => v.id === vehicleId) ||
+      siteConfig.vehicles[0];
     const distanceKm = route?.distanceKm || 0;
 
     const fare = calculateFare({
       vehicle,
       distanceKm,
-      tripType: tripDetails.tripType,
-      driveMode: tripDetails.serviceMode,
-      days: tripDetails.days,
+      tripType,
+      driveMode,
+      days,
     });
 
     const bookingCode = generateBookingCode();
-    const travelDateTime = `${tripDetails.pickupDate} ${tripDetails.pickupTime}`;
+    const travelDateTime = `${date} ${time}`;
 
-    // 1. Submit booking via secure rate-limited API route handler
+    // 1. Submit booking via API handler
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
@@ -186,16 +226,16 @@ export const useBookingStore = create<BookingState>((set, get) => ({
           booking_code: bookingCode,
           name: name.trim(),
           phone: phone.trim(),
-          pickup_address: pickup?.shortName || pickup?.displayName || "",
+          pickup_address: pickup?.address || pickup?.label || "",
           pickup_lat: pickup?.lat || null,
           pickup_lng: pickup?.lng || null,
-          drop_address: drop?.shortName || drop?.displayName || "",
+          drop_address: drop?.address || drop?.label || "",
           drop_lat: drop?.lat || null,
           drop_lng: drop?.lng || null,
           distance_km: distanceKm,
-          trip_type: tripDetails.tripType,
-          drive_mode: tripDetails.serviceMode,
-          days: tripDetails.days,
+          trip_type: tripType,
+          drive_mode: driveMode,
+          days,
           vehicle_id: vehicle.id,
           fare_total: fare.total,
           travel_datetime: travelDateTime,
@@ -214,16 +254,21 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       console.error("Booking submission error:", err);
     }
 
-    // 2. Save local backup to LocalStorage
+    // 2. Save local backup to localStorage
     const record: SavedBookingRecord = {
       bookingId: bookingCode,
       customerName: name,
       customerPhone: phone,
       pickup,
       drop,
-      distanceKm,
-      tripDetails,
-      selectedVehicle: vehicle,
+      date,
+      time,
+      tripType,
+      driveMode,
+      days,
+      passengers: get().passengers,
+      vehicleId,
+      route,
       totalFare: fare.total,
       createdAt: new Date().toISOString(),
     };
@@ -243,7 +288,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       customerName: name,
       customerPhone: phone,
       isSubmittingBooking: false,
-      step: "done",
+      screen: "done",
     });
 
     return bookingCode;
@@ -253,67 +298,40 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     set({
       pickup: record.pickup,
       drop: record.drop,
-      tripDetails: {
-        ...record.tripDetails,
-        pickupDate: getTodayString(),
-      },
-      selectedVehicle: record.selectedVehicle,
-      step: "route",
+      date: getTodayString(),
+      time: record.time || "09:00",
+      tripType: record.tripType,
+      driveMode: record.driveMode,
+      days: record.days,
+      passengers: record.passengers,
+      vehicleId: record.vehicleId,
+      route: record.route,
+      screen: record.route ? "vehicles" : "home",
     });
-    get().fetchRoute();
-  },
-
-  fetchRoute: async () => {
-    const { pickup, drop } = get();
-    if (!pickup || !drop) return;
-
-    set({ isRouteLoading: true, routeError: null });
-
-    try {
-      const routeData = await getRoute(pickup, drop);
-      if (!routeData || routeData.distanceKm === 0) {
-        throw new Error("Unable to calculate driving route between selected points.");
-      }
-
-      set({
-        route: {
-          distanceKm: routeData.distanceKm,
-          durationMin: routeData.durationMins,
-          geometry: routeData.coordinates,
-        },
-        isRouteLoading: false,
-        routeError: null,
-      });
-    } catch (err: any) {
-      console.error("Route calculation error:", err);
-      set({
-        isRouteLoading: false,
-        routeError:
-          err?.message || "Failed to calculate route. Please check your connection.",
-      });
+    if (!record.route && record.pickup && record.drop) {
+      get().fetchRoute();
     }
   },
 
-  resetBooking: () =>
+  resetBooking: () => {
     set({
-      step: "pickup",
       pickup: null,
       drop: null,
+      date: getTodayString(),
+      time: "09:00",
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+      passengers: 1,
+      vehicleId: siteConfig.vehicles[0]?.id || "sedan",
       route: null,
+      screen: "home",
       isRouteLoading: false,
       routeError: null,
-      tripDetails: {
-        tripType: "one-way",
-        serviceMode: "with-driver",
-        pickupDate: getTodayString(),
-        pickupTime: "09:00",
-        days: 1,
-        passengers: 1,
-      },
-      selectedVehicle: siteConfig.vehicles[0] || null,
       bookingId: null,
       customerName: "",
       customerPhone: "",
       isSubmittingBooking: false,
-    }),
+    });
+  },
 }));

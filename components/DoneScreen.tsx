@@ -13,14 +13,17 @@ export default function DoneScreen() {
     pickup,
     drop,
     route,
-    tripDetails,
-    selectedVehicle,
+    date,
+    time,
+    vehicleId,
     resetBooking,
   } = useBookingStore();
 
   const [copied, setCopied] = useState(false);
 
-  const vehicle = selectedVehicle || siteConfig.vehicles[0];
+  const vehicle =
+    siteConfig.vehicles.find((v) => v.id === vehicleId) ||
+    siteConfig.vehicles[0];
 
   const handleCopyBookingId = () => {
     if (!bookingId) return;
@@ -30,7 +33,7 @@ export default function DoneScreen() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-in fade-in duration-300 select-none">
+    <div className="min-h-full flex items-center justify-center p-4 select-none animate-in fade-in duration-300">
       <div className="w-full max-w-sm bg-white rounded-3xl p-6 text-center space-y-4 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
         {/* Animated Success Icon */}
         <div className="animate-bounce-in">
@@ -105,14 +108,14 @@ export default function DoneScreen() {
           <div className="space-y-1 text-[11px] text-slate-600">
             <div className="truncate">
               <span className="font-bold text-slate-400 mr-1">FROM:</span>
-              <span>{pickup?.shortName || pickup?.displayName}</span>
+              <span>{pickup?.label || pickup?.address}</span>
             </div>
             <div className="truncate">
               <span className="font-bold text-slate-400 mr-1">TO:</span>
-              <span>{drop?.shortName || drop?.displayName}</span>
+              <span>{drop?.label || drop?.address}</span>
             </div>
             <div className="flex justify-between text-slate-500 pt-1">
-              <span>Date: {tripDetails.pickupDate} ({tripDetails.pickupTime})</span>
+              <span>Date: {date} ({time})</span>
               <span>Dist: {route?.distanceKm} km</span>
             </div>
           </div>

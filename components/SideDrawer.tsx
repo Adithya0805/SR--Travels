@@ -193,11 +193,11 @@ export default function SideDrawer({ triggerOnly }: SideDrawerProps = {}) {
 
                           <div className="text-[11px] text-slate-700 space-y-0.5 truncate">
                             <div className="font-semibold truncate">
-                              {b.pickup?.shortName || b.pickup?.displayName} &rarr;{" "}
-                              {b.drop?.shortName || b.drop?.displayName}
+                              {b.pickup?.label || (b.pickup as any)?.shortName || b.pickup?.address} &rarr;{" "}
+                              {b.drop?.label || (b.drop as any)?.shortName || b.drop?.address}
                             </div>
                             <div className="text-[10px] text-slate-400">
-                              {b.selectedVehicle?.name} &bull; {b.distanceKm} km
+                              {b.vehicleId || (b as any).selectedVehicle?.name} &bull; {b.route?.distanceKm || (b as any).distanceKm || 0} km
                             </div>
                           </div>
 

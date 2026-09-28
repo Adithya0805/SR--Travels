@@ -1,159 +1,143 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useCallback, useRef } from "react";
-import { reverseGeocode } from "@/lib/maps";
-import { useBookingStore } from "@/store/useBookingStore";
-import LocationPickerBottomSheet from "@/components/LocationPickerBottomSheet";
-import RouteSummaryCard from "@/components/RouteSummaryCard";
-import TripDetailsBottomSheet from "@/components/TripDetailsBottomSheet";
-import VehicleSelectionBottomSheet from "@/components/VehicleSelectionBottomSheet";
-import BookingSummaryBottomSheet from "@/components/BookingSummaryBottomSheet";
-import DoneScreen from "@/components/DoneScreen";
+import { useState, useEffect } from "react";
+import { useBookingStore, LocationPoint } from "@/store/useBookingStore";
+import { siteConfig } from "@/config/siteConfig";
+import { LogoIcon } from "@/components/Logo";
 import SideDrawer from "@/components/SideDrawer";
 import OfflineBanner from "@/components/OfflineBanner";
-import { siteConfig } from "@/config/siteConfig";
-import { LogoIcon, LogoFull } from "@/components/Logo";
+import HomeScreen from "@/components/screens/HomeScreen";
+import VehiclesScreen from "@/components/screens/VehiclesScreen";
+import ReviewScreen from "@/components/screens/ReviewScreen";
+import DoneScreen from "@/components/DoneScreen";
+import { prefetchMapChunks } from "@/lib/prefetchMap";
 
-// Dynamically import Leaflet Map component with SSR disabled
-const MapComponent = dynamic(() => import("@/components/Map"), {
+// Map components loaded strictly on-demand via next/dynamic (ssr: false)
+const MapPicker = dynamic(() => import("@/components/map/MapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center text-slate-400 gap-3">
-      <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-xs font-semibold tracking-wide">Loading Leaflet Map...</p>
+    <div className="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center text-white gap-3 select-none">
+      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <p className="text-xs font-bold tracking-wide">Loading Map Picker...</p>
+    </div>
+  ),
+});
+
+const RoutePreview = dynamic(() => import("@/components/map/RoutePreview"), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center text-white gap-3 select-none">
+      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <p className="text-xs font-bold tracking-wide">Loading Route Map...</p>
     </div>
   ),
 });
 
 export default function Home() {
   const {
-    step,
-    setStep,
-    confirmPickup,
-    confirmDrop,
+    screen,
+    pickup,
+    drop,
+    route,
+    setPickup,
+    setDrop,
   } = useBookingStore();
 
-  // Map center state
-  const [center, setCenter] = useState<{ lat: number; lng: number }>({
-    lat: 13.0827,
-    lng: 80.2707,
-  });
+  // Map modals visibility state
+  const [mapPickerTarget, setMapPickerTarget] = useState<"pickup" | "drop" | null>(null);
+  const [showRoutePreview, setShowRoutePreview] = useState<boolean>(false);
 
-  const [currentAddress, setCurrentAddress] = useState<string>("");
-  const [isGeocoding, setIsGeocoding] = useState<boolean>(false);
-  const [gpsErrorNotice, setGpsErrorNotice] = useState<string | null>(null);
-
-  const reverseGeocodeTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleMapMoveStart = useCallback(() => {
-    if (step !== "pickup" && step !== "drop") return;
-    setIsGeocoding(true);
-  }, [step]);
-
-  const handleMapMoveEnd = useCallback(
-    (lat: number, lng: number) => {
-      if (step !== "pickup" && step !== "drop") return;
-
-      setCenter({ lat, lng });
-      setIsGeocoding(true);
-
-      if (reverseGeocodeTimerRef.current) {
-        clearTimeout(reverseGeocodeTimerRef.current);
+  // Requirement 4: Prefetch map chunks using requestIdleCallback after Home renders
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if ("requestIdleCallback" in window) {
+        (window as any).requestIdleCallback(() => {
+          prefetchMapChunks();
+        });
+      } else {
+        const timer = setTimeout(() => {
+          prefetchMapChunks();
+        }, 2000);
+        return () => clearTimeout(timer);
       }
-
-      reverseGeocodeTimerRef.current = setTimeout(async () => {
-        const addr = await reverseGeocode(lat, lng);
-        setCurrentAddress(addr);
-        setIsGeocoding(false);
-      }, 300);
-    },
-    [step]
-  );
-
-  const handleSelectSuggestion = useCallback(
-    (lat: number, lng: number, address: string) => {
-      setCenter({ lat, lng });
-      setCurrentAddress(address);
-      setIsGeocoding(false);
-    },
-    []
-  );
-
-  const handleConfirmStep = () => {
-    if (step === "pickup") {
-      confirmPickup({
-        lat: center.lat,
-        lng: center.lng,
-        displayName: currentAddress,
-        shortName: currentAddress,
-      });
-      setCurrentAddress("");
-    } else if (step === "drop") {
-      confirmDrop({
-        lat: center.lat,
-        lng: center.lng,
-        displayName: currentAddress,
-        shortName: currentAddress,
-      });
     }
+  }, []);
+
+  const handleOpenMapPicker = (target: "pickup" | "drop") => {
+    setMapPickerTarget(target);
+  };
+
+  const handleConfirmLocation = (loc: LocationPoint) => {
+    if (mapPickerTarget === "pickup") {
+      setPickup(loc);
+    } else if (mapPickerTarget === "drop") {
+      setDrop(loc);
+    }
+    setMapPickerTarget(null);
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-slate-900 select-none">
+    <div className="relative w-screen h-screen flex flex-col bg-slate-900 text-slate-800 select-none overflow-hidden font-poppins">
       {/* Offline Status Banner */}
       <OfflineBanner />
 
-      {/* Floating Header Pill — SR Travels branding + menu icon */}
-      <div className="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-        {/* Left: Brand pill — Monogram (24px tall) + SR Travels */}
-        <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-slate-100 px-3 py-1.5 pointer-events-auto">
-          <LogoIcon height={24} />
-          <span className="text-sm font-extrabold text-slate-900 tracking-tight">
-            {siteConfig.businessName}
-          </span>
+      {/* Persistent Floating Header: Logo (monogram 24px) + SideDrawer Hamburger */}
+      <header className="fixed top-0 left-0 right-0 z-30 px-4 pt-4 pb-2 bg-gradient-to-b from-slate-900 via-slate-900/90 to-transparent pointer-events-none">
+        <div className="max-w-lg mx-auto flex items-center justify-between pointer-events-auto">
+          {/* Left: Brand Pill with 24px monogram */}
+          <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-slate-100 px-3.5 py-1.5 pointer-events-auto">
+            <LogoIcon height={24} />
+            <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+              {siteConfig.businessName}
+            </span>
+          </div>
+
+          {/* Right: Side Drawer Menu trigger */}
+          <SideDrawer />
         </div>
+      </header>
 
-        {/* Right: Hamburger menu button */}
-        <SideDrawer />
-      </div>
+      {/* Main Screen Container with smooth scroll & transition */}
+      <main className="flex-1 w-full h-full overflow-y-auto px-4 pt-20 pb-6">
+        {screen === "home" && (
+          <HomeScreen onOpenMapPicker={handleOpenMapPicker} />
+        )}
 
-      {/* Leaflet Map */}
-      <MapComponent
-        center={center}
-        onMapMoveStart={handleMapMoveStart}
-        onMapMoveEnd={handleMapMoveEnd}
-        onGpsError={(msg) => setGpsErrorNotice(msg)}
-      />
+        {screen === "vehicles" && (
+          <VehiclesScreen
+            onOpenRoutePreview={() => setShowRoutePreview(true)}
+          />
+        )}
 
-      {/* Step 1 & Step 2: Location Picker Bottom Sheet (Pickup or Drop) */}
-      {(step === "pickup" || step === "drop") && (
-        <LocationPickerBottomSheet
-          mode={step}
-          address={currentAddress}
-          isGeocoding={isGeocoding}
-          gpsErrorNotice={gpsErrorNotice}
-          onClearGpsNotice={() => setGpsErrorNotice(null)}
-          onSelectSuggestion={handleSelectSuggestion}
-          onConfirm={handleConfirmStep}
-          onBack={step === "drop" ? () => setStep("pickup") : undefined}
+        {screen === "review" && (
+          <ReviewScreen
+            onOpenRoutePreview={() => setShowRoutePreview(true)}
+          />
+        )}
+
+        {screen === "done" && <DoneScreen />}
+      </main>
+
+      {/* Map Picker Modal (rendered ONLY when user opens it) */}
+      {mapPickerTarget && (
+        <MapPicker
+          target={mapPickerTarget}
+          initialLocation={mapPickerTarget === "pickup" ? pickup : drop}
+          onConfirm={handleConfirmLocation}
+          onClose={() => setMapPickerTarget(null)}
         />
       )}
 
-      {/* Step 3: Route Summary Card */}
-      {step === "route" && <RouteSummaryCard />}
-
-      {/* Step 4: Trip Details Bottom Sheet */}
-      {step === "details" && <TripDetailsBottomSheet />}
-
-      {/* Step 5: Vehicle Selection Bottom Sheet */}
-      {step === "vehicles" && <VehicleSelectionBottomSheet />}
-
-      {/* Step 6: Confirm Booking Summary Sheet */}
-      {step === "summary" && <BookingSummaryBottomSheet />}
-
-      {/* Step 7: Booking Done Confirmation Screen */}
-      {step === "done" && <DoneScreen />}
-    </main>
+      {/* Route Preview Modal (rendered ONLY when user opens it) */}
+      {showRoutePreview && pickup && drop && route && (
+        <RoutePreview
+          pickup={pickup}
+          drop={drop}
+          route={route}
+          onClose={() => setShowRoutePreview(false)}
+        />
+      )}
+    </div>
   );
 }
