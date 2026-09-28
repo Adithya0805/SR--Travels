@@ -165,7 +165,7 @@ export default function RouteSummaryCard() {
         <button
           type="button"
           onClick={() => setStep("details")}
-          className="w-full h-13 min-h-[48px] rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="w-full h-[52px] rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           <span>Configure Trip Details</span>
           <svg

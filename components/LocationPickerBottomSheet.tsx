@@ -145,15 +145,17 @@ export default function LocationPickerBottomSheet({
           </div>
         </div>
 
-        <span
-          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-            isPickup
-              ? "bg-emerald-100 text-emerald-800"
-              : "bg-amber-100 text-amber-800"
-          }`}
-        >
-          Step {isPickup ? "1 of 4" : "2 of 4"}
-        </span>
+        {/* 4-segment progress bar */}
+        <div className="flex gap-1 items-center w-20 shrink-0" aria-label={isPickup ? "Step 1 of 4" : "Step 2 of 4"}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 rounded-full flex-1 transition-all duration-300 ${
+                i < (isPickup ? 1 : 2) ? "bg-emerald-500" : "bg-slate-200"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Search Input */}
@@ -297,7 +299,7 @@ export default function LocationPickerBottomSheet({
         type="button"
         onClick={onConfirm}
         disabled={isGeocoding || !address}
-        className="w-full h-13 min-h-[48px] rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full h-[52px] rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
       >
         <span>{buttonText}</span>
         <svg

@@ -1,33 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/config/siteConfig";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://sr-travels-tau.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL || siteConfig.siteUrl;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: `${siteConfig.businessName} - ${siteConfig.tagline}`,
-  description: `${siteConfig.businessName} outstation & local taxi booking service in ${siteConfig.serviceRegion}. One-way, round-trip & self-drive cars at transparent rates.`,
+  title: siteConfig.metaTitle,
+  description: siteConfig.metaDescription,
   keywords: siteConfig.seoKeywords,
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/brand/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/brand/favicon.svg",    type: "image/svg+xml" },
+    ],
+    apple: { url: "/brand/apple-touch-icon.png", sizes: "180x180" },
+    shortcut: "/brand/favicon-32.png",
   },
   openGraph: {
-    title: `${siteConfig.businessName} - ${siteConfig.tagline}`,
+    title: siteConfig.metaTitle,
     description: `Book outstation cabs and self-drive cars across ${siteConfig.serviceRegion} instantly. Transparent fares, 24/7 support.`,
     siteName: siteConfig.businessName,
     locale: "en_IN",
@@ -35,18 +38,18 @@ export const metadata: Metadata = {
     url: siteUrl,
     images: [
       {
-        url: "/og-image.png",
+        url: "/brand/og-image.png",
         width: 1200,
         height: 630,
-        alt: `${siteConfig.businessName} ${siteConfig.tagline}`,
+        alt: siteConfig.metaTitle,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.businessName} - ${siteConfig.tagline}`,
+    title: siteConfig.metaTitle,
     description: `Outstation & local taxi booking service in ${siteConfig.serviceRegion}.`,
-    images: ["/og-image.png"],
+    images: ["/brand/og-image.png"],
   },
   appleWebApp: {
     capable: true,
@@ -59,6 +62,7 @@ export const viewport: Viewport = {
   themeColor: "#10B981",
   width: "device-width",
   initialScale: 1,
+  // user-scalable and maximum-scale intentionally omitted for accessibility
 };
 
 export default function RootLayout({
@@ -67,14 +71,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${poppins.variable} h-full antialiased`}>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#10B981" />
+        <meta name="theme-color" content={siteConfig.brand.navy} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
-      <body className="h-full w-full overflow-hidden bg-slate-900 text-slate-800 select-none">
+      <body className="h-full w-full overflow-hidden bg-slate-900 text-slate-800 select-none font-poppins">
         {children}
         <script
           dangerouslySetInnerHTML={{

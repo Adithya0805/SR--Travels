@@ -106,25 +106,33 @@ export default function Map({
     }
   }, [center.lat, center.lng, step]);
 
-  // Update Pickup Marker (show fixed marker when step is 'drop' or 'route')
+  // Update Pickup Marker — green custom pin with pulse animation
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     if (pickup && step !== "pickup") {
+      const isActive = step === "drop" || step === "route";
       const emeraldIcon = L.divIcon({
         html: `
-          <div style="background-color: #10B981; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 13px;">
-            P
-          </div>
+          <div class="pickup-pin-active" style="
+            background: linear-gradient(135deg,#10B981,#059669);
+            width:36px; height:36px; border-radius:50%;
+            border:3px solid white;
+            box-shadow:0 4px 14px rgba(16,185,129,0.5);
+            display:flex; align-items:center; justify-content:center;
+            color:white; font-weight:800; font-size:13px;
+            font-family:var(--font-poppins,sans-serif);
+          ">P</div>
         `,
-        className: "pickup-icon",
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        className: "",
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
 
       if (pickupMarkerRef.current) {
         pickupMarkerRef.current.setLatLng([pickup.lat, pickup.lng]);
+        pickupMarkerRef.current.setIcon(emeraldIcon);
       } else {
         pickupMarkerRef.current = L.marker([pickup.lat, pickup.lng], {
           icon: emeraldIcon,
@@ -136,28 +144,35 @@ export default function Map({
     }
   }, [pickup, step]);
 
-  // Update Drop Marker (show fixed marker when step is 'route')
+  // Update Drop Marker — slate custom pin
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     if (drop && step === "route") {
-      const goldIcon = L.divIcon({
+      const slateIcon = L.divIcon({
         html: `
-          <div style="background-color: #F5B700; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; color: #1E293B; font-weight: bold; font-size: 13px;">
-            D
-          </div>
+          <div class="drop-pin-active" style="
+            background: linear-gradient(135deg,#64748B,#475569);
+            width:36px; height:36px; border-radius:50%;
+            border:3px solid white;
+            box-shadow:0 4px 14px rgba(100,116,139,0.5);
+            display:flex; align-items:center; justify-content:center;
+            color:white; font-weight:800; font-size:13px;
+            font-family:var(--font-poppins,sans-serif);
+          ">D</div>
         `,
-        className: "drop-icon",
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+        className: "",
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
 
       if (dropMarkerRef.current) {
         dropMarkerRef.current.setLatLng([drop.lat, drop.lng]);
+        dropMarkerRef.current.setIcon(slateIcon);
       } else {
         dropMarkerRef.current = L.marker([drop.lat, drop.lng], {
-          icon: goldIcon,
+          icon: slateIcon,
         }).addTo(map);
       }
     } else if (dropMarkerRef.current) {
@@ -222,7 +237,10 @@ export default function Map({
 
   const showCenterPin = step === "pickup" || step === "drop";
   const pinBadge = step === "pickup" ? "P" : "D";
-  const pinColor = step === "pickup" ? "bg-emerald-500" : "bg-amber-400 text-slate-900";
+  const pinGradient =
+    step === "pickup"
+      ? "linear-gradient(135deg,#10B981,#059669)"
+      : "linear-gradient(135deg,#64748B,#475569)";
 
   return (
     <div className="relative w-full h-full">
@@ -238,7 +256,8 @@ export default function Map({
           >
             <div className="relative flex items-center justify-center">
               <div
-                className={`w-10 h-10 rounded-full border-4 border-white shadow-2xl flex items-center justify-center font-bold text-sm text-white ${pinColor}`}
+                className="w-10 h-10 rounded-full border-4 border-white shadow-2xl flex items-center justify-center font-bold text-sm text-white"
+                style={{ background: pinGradient }}
               >
                 {pinBadge}
               </div>
@@ -258,7 +277,7 @@ export default function Map({
         onClick={handleLocateMe}
         disabled={isLocating}
         aria-label="Center on my location"
-        className="absolute top-4 right-4 z-10 w-11 h-11 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center text-slate-700 active:scale-95 transition-all disabled:opacity-50"
+        className="absolute top-16 right-4 z-10 w-11 h-11 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center text-slate-700 active:scale-95 transition-all disabled:opacity-50"
       >
         {isLocating ? (
           <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />

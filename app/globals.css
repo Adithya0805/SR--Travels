@@ -6,6 +6,10 @@
     --primary-emerald: #10B981;
     --accent-gold: #F5B700;
     --text-slate: #1E293B;
+
+    /* ── Brand tokens (sampled from SR Travels logo) ── */
+    --brand-navy: #1c2d4f;
+    --brand-gold: #cb950f;
   }
 
   html, body {
@@ -18,6 +22,7 @@
     background-color: #1E293B;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    font-family: var(--font-poppins, 'Poppins', sans-serif);
   }
 }
 
@@ -39,4 +44,47 @@
   font-size: 9px !important;
   background: rgba(255, 255, 255, 0.75) !important;
   backdrop-filter: blur(4px);
+}
+
+/* Custom map pin pulse animation */
+@keyframes pin-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+}
+
+@keyframes pin-pulse-slate {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(100, 116, 139, 0.5); }
+  50% { box-shadow: 0 0 0 10px rgba(100, 116, 139, 0); }
+}
+
+.pickup-pin-active {
+  animation: pin-pulse 1.8s ease-in-out infinite;
+}
+
+.drop-pin-active {
+  animation: pin-pulse-slate 1.8s ease-in-out infinite;
+}
+
+/* Success checkmark animation */
+@keyframes check-draw {
+  from { stroke-dashoffset: 60; opacity: 0; }
+  to   { stroke-dashoffset: 0; opacity: 1; }
+}
+
+.animate-check {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: check-draw 0.5s ease-out 0.2s forwards;
+}
+
+/* Scale bounce for the success icon ring */
+@keyframes bounce-in {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.15); }
+  80% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s ease-out forwards;
 }

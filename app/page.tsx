@@ -12,6 +12,8 @@ import BookingSummaryBottomSheet from "@/components/BookingSummaryBottomSheet";
 import DoneScreen from "@/components/DoneScreen";
 import SideDrawer from "@/components/SideDrawer";
 import OfflineBanner from "@/components/OfflineBanner";
+import { siteConfig } from "@/config/siteConfig";
+import { LogoIcon, LogoFull } from "@/components/Logo";
 
 // Dynamically import Leaflet Map component with SSR disabled
 const MapComponent = dynamic(() => import("@/components/Map"), {
@@ -102,8 +104,19 @@ export default function Home() {
       {/* Offline Status Banner */}
       <OfflineBanner />
 
-      {/* Top-Left Side Menu Drawer */}
-      <SideDrawer />
+      {/* Floating Header Pill — SR Travels branding + menu icon */}
+      <div className="fixed top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
+        {/* Left: Brand pill — Monogram (24px tall) + SR Travels */}
+        <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md rounded-full shadow-lg border border-slate-100 px-3 py-1.5 pointer-events-auto">
+          <LogoIcon height={24} />
+          <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+            {siteConfig.businessName}
+          </span>
+        </div>
+
+        {/* Right: Hamburger menu button */}
+        <SideDrawer />
+      </div>
 
       {/* Leaflet Map */}
       <MapComponent

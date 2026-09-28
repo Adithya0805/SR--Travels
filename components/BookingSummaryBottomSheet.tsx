@@ -160,9 +160,12 @@ Please confirm my booking. Thank you!`;
           </div>
         </div>
 
-        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-          Final Step
-        </span>
+        {/* 4-segment progress bar (all complete) */}
+        <div className="flex gap-1 items-center w-20 shrink-0" aria-label="Final step">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-1 rounded-full flex-1 bg-emerald-500" />
+          ))}
+        </div>
       </div>
 
       {/* Summary Box */}
@@ -273,7 +276,7 @@ Please confirm my booking. Thank you!`;
           type="button"
           onClick={handleConfirmWhatsApp}
           disabled={isSubmittingBooking}
-          className="w-full h-13 min-h-[48px] rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 active:scale-95 transition-all disabled:opacity-60"
+          className="w-full h-[52px] rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 active:scale-95 transition-all disabled:opacity-50"
         >
           {isSubmittingBooking ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -306,7 +309,7 @@ Please confirm my booking. Thank you!`;
               d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
             />
           </svg>
-          Call to book ({siteConfig.phone})
+          Call to book — {siteConfig.phoneDisplay}
         </button>
       </div>
     </div>

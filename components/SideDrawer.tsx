@@ -3,10 +3,16 @@
 import { useState, useEffect } from "react";
 import { siteConfig, Vehicle } from "@/config/siteConfig";
 import { useBookingStore, SavedBookingRecord } from "@/store/useBookingStore";
+import { LogoReversed } from "@/components/Logo";
 
 type ActiveTab = "bookings" | "tariff" | "help" | "contact";
 
-export default function SideDrawer() {
+interface SideDrawerProps {
+  /** When true, renders only the trigger button (used in header). Default is false (renders trigger + drawer inline). */
+  triggerOnly?: boolean;
+}
+
+export default function SideDrawer({ triggerOnly }: SideDrawerProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>("bookings");
   const [pastBookings, setPastBookings] = useState<SavedBookingRecord[]>([]);
@@ -57,15 +63,15 @@ export default function SideDrawer() {
 
   return (
     <>
-      {/* Top-Left Hamburger Menu Button */}
+      {/* Hamburger trigger button — compact, no fixed positioning (parent controls placement) */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Open menu drawer"
-        className="fixed top-4 left-4 z-20 w-11 h-11 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center text-slate-800 active:scale-95 transition-all select-none"
+        className="w-9 h-9 bg-white/95 backdrop-blur-md rounded-full shadow border border-slate-100 flex items-center justify-center text-slate-800 active:scale-95 transition-all select-none pointer-events-auto"
       >
         <svg
-          className="w-5 h-5 text-slate-800"
+          className="w-4 h-4 text-slate-700"
           fill="none"
           stroke="currentColor"
           strokeWidth="2.5"
@@ -91,15 +97,8 @@ export default function SideDrawer() {
           {/* Slide-Out Drawer Panel */}
           <div className="relative z-50 w-full max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-in slide-in-from-left duration-250">
             {/* Header */}
-            <div className="p-4 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between">
-              <div>
-                <h2 className="text-base font-black tracking-wide text-emerald-400">
-                  {siteConfig.businessName}
-                </h2>
-                <p className="text-[10px] text-slate-400">
-                  {siteConfig.serviceRegion} Taxi & Rental
-                </p>
-              </div>
+            <div className="p-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
+              <LogoReversed height={44} />
 
               <button
                 type="button"
@@ -276,7 +275,7 @@ export default function SideDrawer() {
               {activeTab === "help" && (
                 <div className="space-y-3">
                   <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                    Help & FAQs
+                    Help &amp; FAQs
                   </h3>
 
                   <div className="space-y-2">
@@ -320,21 +319,23 @@ export default function SideDrawer() {
                   </div>
 
                   <div className="space-y-2.5">
+                    {/* WhatsApp button */}
                     <a
                       href={`https://wa.me/${siteConfig.whatsapp}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full h-12 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform"
+                      className="w-full h-[52px] rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 active:scale-95 transition-transform"
                     >
                       <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                         <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.205 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-1.107 4.041 4.103-1.092z" />
                       </svg>
-                      Chat on WhatsApp ({siteConfig.whatsapp})
+                      Chat on WhatsApp
                     </a>
 
+                    {/* Call button */}
                     <a
                       href={`tel:${siteConfig.phone}`}
-                      className="w-full h-12 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform"
+                      className="w-full h-[52px] rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform"
                     >
                       <svg
                         className="w-4 h-4 text-amber-400"
@@ -349,7 +350,7 @@ export default function SideDrawer() {
                           d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                         />
                       </svg>
-                      Call Customer Support ({siteConfig.phone})
+                      Call Us — {siteConfig.phoneDisplay}
                     </a>
                   </div>
                 </div>

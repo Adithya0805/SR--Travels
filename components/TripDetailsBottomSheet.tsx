@@ -86,9 +86,17 @@ export default function TripDetailsBottomSheet() {
           </div>
         </div>
 
-        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
-          Step 3 of 4
-        </span>
+        {/* 4-segment progress bar */}
+        <div className="flex gap-1 items-center w-20 shrink-0" aria-label="Step 3 of 4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 rounded-full flex-1 transition-all duration-300 ${
+                i < 3 ? "bg-emerald-500" : "bg-slate-200"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 pt-1">
@@ -300,7 +308,7 @@ export default function TripDetailsBottomSheet() {
         {/* SINGLE PRIMARY ACTION BUTTON */}
         <button
           type="submit"
-          className="w-full h-13 min-h-[48px] rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="w-full h-[52px] rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           <span>See Vehicles</span>
           <svg

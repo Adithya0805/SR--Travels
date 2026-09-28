@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"
+     width="1000" height="1000" aria-label="SR Travels badge">
+  <circle cx="500" cy="500" r="498" fill="#ffffff"/>
+  <circle cx="500" cy="500" r="490" fill="none" stroke="#1c2d4f" stroke-width="18"/>
+  <circle cx="500" cy="500" r="472" fill="none" stroke="#cb950f" stroke-width="56"/>
+  <circle cx="500" cy="500" r="440" fill="#ffffff"/>
+  <g transform="translate(20,120) scale(0.960)">
+    <path d="M 452,95 C 452,68 428,50 390,50 L 185,50
+             C 105,50 55,98 55,165 C 55,232 98,272 178,290
+             L 330,322 C 415,342 462,385 462,455
+             C 462,527 415,572 330,578 L 148,578
+             C 92,578 55,548 55,520"
+          fill="none" stroke="#1c2d4f" stroke-width="96"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 28,640 C 140,620 270,555 410,465
+             C 550,375 680,295 870,235 L 870,308
+             C 685,368 555,448 415,538
+             C 275,628 145,695 28,718 Z" fill="#cb950f"/>
+    <rect x="95"  y="620" width="52" height="14" rx="7"
+          transform="rotate(-18  95 620)" fill="#ffffff"/>
+    <rect x="185" y="572" width="52" height="14" rx="7"
+          transform="rotate(-22 185 572)" fill="#ffffff"/>
+    <rect x="288" y="516" width="52" height="14" rx="7"
+          transform="rotate(-26 288 516)" fill="#ffffff"/>
+    <rect x="400" y="450" width="52" height="14" rx="7"
+          transform="rotate(-30 400 450)" fill="#ffffff"/>
+    <rect x="515" y="390" width="52" height="14" rx="7"
+          transform="rotate(-33 515 390)" fill="#ffffff"/>
+    <rect x="635" y="336" width="52" height="14" rx="7"
+          transform="rotate(-35 635 336)" fill="#ffffff"/>
+    <rect x="548" y="54" width="92" height="538" rx="14" fill="#cb950f"/>
+    <path d="M 596,54 L 796,54 C 916,54 970,122 970,202
+             C 970,282 916,348 796,348 L 596,348 Z" fill="#cb950f"/>
+    <path d="M 640,128 L 782,128 C 878,128 892,165 892,202
+             C 892,239 878,275 782,275 L 640,275 Z" fill="#ffffff"/>
+    <line x1="772" y1="348" x2="980" y2="592"
+          stroke="#cb950f" stroke-width="92" stroke-linecap="round"/>
+  </g>
+  <rect x="130" y="820" width="180" height="8" rx="4" fill="#cb950f"/>
+  <text x="500" y="858" font-family="Poppins,Arial,sans-serif"
+        font-weight="500" font-size="68" letter-spacing="18"
+        text-anchor="middle" fill="#1c2d4f">TRAVELS</text>
+  <rect x="690" y="820" width="180" height="8" rx="4" fill="#cb950f"/>
+</svg>
