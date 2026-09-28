@@ -14,6 +14,7 @@ export interface RouteData {
   distanceKm: number;
   durationMin: number;
   geometry: [number, number][];
+  isApproximate?: boolean;
 }
 
 export type ScreenState = "home" | "vehicles" | "review" | "done";
@@ -162,6 +163,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
         distanceKm: routeResult.distanceKm,
         durationMin: routeResult.durationMins,
         geometry: routeResult.coordinates,
+        isApproximate: routeResult.isApproximate ?? false,
       };
 
       set({

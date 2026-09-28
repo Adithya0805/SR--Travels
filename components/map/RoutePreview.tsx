@@ -7,14 +7,16 @@ export interface RoutePreviewProps {
   pickup: { label: string; address: string; lat: number; lng: number };
   drop: { label: string; address: string; lat: number; lng: number };
   route: { distanceKm: number; durationMin: number; geometry: [number, number][] };
-  onClose: () => void;
+  onViewLarger?: () => void;
+  className?: string;
 }
 
 export default function RoutePreview({
   pickup,
   drop,
   route,
-  onClose,
+  onViewLarger,
+  className,
 }: RoutePreviewProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -31,78 +33,82 @@ export default function RoutePreview({
 
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const centerLat = (pickup.lat + drop.lat) / 2;
-    const centerLng = (pickup.lng + drop.lng) / 2;
-
+    // 200px non-interactive Leaflet map per SRT-R5
     const map = L.map(mapContainerRef.current, {
-      center: [centerLat, centerLng],
+      center: [(pickup.lat + drop.lat) / 2, (pickup.lng + drop.lng) / 2],
       zoom: 12,
       zoomControl: false,
+      dragging: false,
+      touchZoom: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      preferCanvas: true,
+      zoomAnimation: false,
+      markerZoomAnimation: false,
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      attribution: "",
     }).addTo(map);
 
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-
-    // Pickup Marker
+    // Green pickup pin (emerald)
     const pickupIcon = L.divIcon({
       html: `
         <div style="
           background: linear-gradient(135deg,#10B981,#059669);
-          width:34px; height:34px; border-radius:50%;
-          border:3px solid white;
-          box-shadow:0 4px 12px rgba(16,185,129,0.5);
+          width:28px; height:28px; border-radius:50%;
+          border:2px solid white;
+          box-shadow:0 3px 10px rgba(16,185,129,0.5);
           display:flex; align-items:center; justify-content:center;
-          color:white; font-weight:800; font-size:13px;
+          color:white; font-weight:800; font-size:11px;
         ">P</div>
       `,
       className: "",
-      iconSize: [34, 34],
-      iconAnchor: [17, 17],
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
     L.marker([pickup.lat, pickup.lng], { icon: pickupIcon }).addTo(map);
 
-    // Drop Marker
+    // Navy drop pin (#1c2d4f) per SRT-R5
     const dropIcon = L.divIcon({
       html: `
         <div style="
-          background: linear-gradient(135deg,#64748B,#475569);
-          width:34px; height:34px; border-radius:50%;
-          border:3px solid white;
-          box-shadow:0 4px 12px rgba(100,116,139,0.5);
+          background: linear-gradient(135deg,#1c2d4f,#121d33);
+          width:28px; height:28px; border-radius:50%;
+          border:2px solid white;
+          box-shadow:0 3px 10px rgba(28,45,79,0.5);
           display:flex; align-items:center; justify-content:center;
-          color:white; font-weight:800; font-size:13px;
+          color:white; font-weight:800; font-size:11px;
         ">D</div>
       `,
       className: "",
-      iconSize: [34, 34],
-      iconAnchor: [17, 17],
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
     });
 
     L.marker([drop.lat, drop.lng], { icon: dropIcon }).addTo(map);
 
-    // Polyline
+    // Route polyline & fitBounds
     if (route.geometry && route.geometry.length > 0) {
       const poly = L.polyline(route.geometry, {
         color: "#10B981",
-        weight: 5,
+        weight: 4,
         opacity: 0.9,
         lineJoin: "round",
       }).addTo(map);
 
       const bounds = poly.getBounds();
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
     } else {
       const bounds = L.latLngBounds([
         [pickup.lat, pickup.lng],
         [drop.lat, drop.lng],
       ]);
-      map.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+      map.fitBounds(bounds, { padding: [35, 35], maxZoom: 14 });
     }
 
     mapRef.current = map;
@@ -114,54 +120,31 @@ export default function RoutePreview({
   }, [pickup, drop, route]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900 select-none animate-in fade-in duration-200">
-      {/* Top Floating Header */}
-      <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close route preview"
-          className="w-11 h-11 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-slate-100 flex items-center justify-center text-slate-700 active:scale-95 transition-all pointer-events-auto"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
+    <div
+      className={`relative w-full rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100 ${
+        className || "h-[200px]"
+      }`}
+    >
+      <div ref={mapContainerRef} className="w-full h-full z-0" />
 
-        {/* Route Stats Pill */}
-        <div className="bg-white/95 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-slate-100 flex items-center gap-3 pointer-events-auto">
-          <div className="text-right">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Distance</span>
-            <span className="text-xs font-black text-slate-800">{route.distanceKm} km</span>
-          </div>
-          <div className="w-[1px] h-6 bg-slate-200" />
-          <div>
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Est. Time</span>
-            <span className="text-xs font-black text-emerald-600">{route.durationMin} mins</span>
-          </div>
-        </div>
-      </div>
+      {/* Floating Route Stats & View Larger Link */}
+      <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-center justify-between pointer-events-none">
+        <span className="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-black text-slate-800 shadow-md border border-slate-100">
+          {route.distanceKm} km &bull; ~{route.durationMin} mins
+        </span>
 
-      {/* Leaflet Map Canvas */}
-      <div ref={mapContainerRef} className="w-full flex-1 z-0" />
-
-      {/* Bottom Summary Floating Card */}
-      <div className="absolute bottom-4 left-4 right-4 z-20 bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-2xl border border-slate-100 max-w-md mx-auto space-y-2 pointer-events-auto">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-800 truncate">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-          <span className="truncate">{pickup.label || pickup.address}</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-800 truncate">
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0" />
-          <span className="truncate">{drop.label || drop.address}</span>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full h-11 mt-2 rounded-2xl bg-slate-900 text-white font-bold text-xs shadow-md active:scale-95 transition-all"
-        >
-          Back to Booking
-        </button>
+        {onViewLarger && (
+          <button
+            type="button"
+            onClick={onViewLarger}
+            className="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-extrabold text-emerald-700 shadow-md border border-slate-100 hover:bg-white active:scale-95 transition-transform pointer-events-auto flex items-center gap-1"
+          >
+            <span>View larger</span>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );

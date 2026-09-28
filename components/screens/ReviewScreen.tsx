@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useBookingStore } from "@/store/useBookingStore";
 import { siteConfig } from "@/config/siteConfig";
 import { calculateFare } from "@/lib/fare";
+
+const RoutePreview = dynamic(() => import("@/components/map/RoutePreview"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[200px] w-full bg-slate-100 animate-pulse rounded-2xl flex items-center justify-center text-xs font-bold text-slate-400">
+      Loading route preview...
+    </div>
+  ),
+});
 
 interface ReviewScreenProps {
   onOpenRoutePreview: () => void;
@@ -24,6 +34,8 @@ export default function ReviewScreen({ onOpenRoutePreview }: ReviewScreenProps) 
     customerName,
     customerPhone,
     isSubmittingBooking,
+    isRouteLoading,
+    fetchRoute,
     setScreen,
     saveBookingToSupabase,
   } = useBookingStore();
@@ -216,6 +228,39 @@ Please confirm my driver and booking details.`;
           </div>
         </div>
       </div>
+
+      {/* Route Preview Map (200px non-interactive) per SRT-R5 */}
+      {pickup && drop && route && (
+        <div className="space-y-2">
+          <RoutePreview
+            pickup={pickup}
+            drop={drop}
+            route={route}
+            onViewLarger={onOpenRoutePreview}
+          />
+
+          {route.isApproximate && (
+            <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                  Approximate
+                </span>
+                <p className="text-[10px] text-amber-800 font-medium">
+                  Estimated via straight-line route
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => fetchRoute()}
+                disabled={isRouteLoading}
+                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[11px] font-bold active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isRouteLoading ? "Retrying..." : "Retry"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Customer Contact Details Card */}
       <form onSubmit={handleWhatsAppConfirm} className="bg-white rounded-3xl p-5 shadow-xl border border-slate-100 space-y-3.5">

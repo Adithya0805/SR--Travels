@@ -34,6 +34,12 @@ export interface SiteConfig {
     navy: string;
     gold: string;
   };
+  popularDestinations: {
+    name: string;
+    lat: number;
+    lng: number;
+    state?: string;
+  }[];
   vehicles: Vehicle[];
   minKmOneWay: number;
   minKmRoundTrip: number;
@@ -79,6 +85,12 @@ export const siteConfig: SiteConfig = {
     /** Sampled from logo source: warm amber-gold */
     gold: "#cb950f",
   },
+  popularDestinations: [
+    { name: "Chennai", lat: 13.0827, lng: 80.2707, state: "Tamil Nadu" },
+    { name: "Bangalore", lat: 12.9716, lng: 77.5946, state: "Karnataka" },
+    { name: "Vellore", lat: 12.9165, lng: 79.1325, state: "Tamil Nadu" },
+    { name: "Tirupati", lat: 13.6288, lng: 79.4192, state: "Andhra Pradesh" },
+  ],
   vehicles: [
     {
       id: "sedan",

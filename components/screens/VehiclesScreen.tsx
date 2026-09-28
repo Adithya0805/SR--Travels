@@ -4,10 +4,9 @@ import { useState } from "react";
 import { useBookingStore } from "@/store/useBookingStore";
 import { siteConfig, Vehicle } from "@/config/siteConfig";
 import { calculateFare } from "@/lib/fare";
-import { prefetchMapChunks } from "@/lib/prefetchMap";
 
 interface VehiclesScreenProps {
-  onOpenRoutePreview: () => void;
+  onOpenRoutePreview?: () => void;
 }
 
 // Vehicle SVG icons
@@ -67,6 +66,12 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
   const lowestFare = Math.min(...vehiclesWithFare.map((v) => v.fare.total));
   const selectedVehicleObj = vehiclesWithFare.find((v) => v.id === vehicleId) || vehiclesWithFare[0];
 
+  const formattedDuration = route?.durationMin
+    ? route.durationMin >= 60
+      ? `${Math.floor(route.durationMin / 60)}h ${route.durationMin % 60}m`
+      : `${route.durationMin} min`
+    : "Calculating";
+
   return (
     <div className="w-full max-w-lg mx-auto pb-10 space-y-4 select-none">
       {/* Top Header Card */}
@@ -97,35 +102,25 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
         </div>
       </div>
 
-      {/* Route Summary Pill */}
+      {/* Route Summary Chip - No map here per SRT-R5 */}
       {pickup && drop && (
-        <div className="bg-slate-800 text-white rounded-2xl p-3.5 shadow-lg border border-slate-700 flex items-center justify-between">
-          <div className="min-w-0 flex-1 mr-3">
+        <div className="bg-[#1c2d4f] text-white rounded-2xl p-3.5 shadow-lg border border-slate-700/60 flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 text-xs font-bold truncate">
               <span className="truncate">{pickup.label || pickup.address}</span>
-              <span className="text-amber-400 shrink-0">&rarr;</span>
+              <span className="text-[#cb950f] shrink-0">&rarr;</span>
               <span className="truncate">{drop.label || drop.address}</span>
             </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">
-              <span>{distanceKm} km</span>
-              {route?.durationMin ? <span> &bull; ~{route.durationMin} mins</span> : null}
-              <span> &bull; {tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
-              <span> &bull; {driveMode === "with-driver" ? "With Driver" : "Self Drive"}</span>
+            <div className="text-[10px] text-slate-300 mt-0.5 flex items-center gap-1.5">
+              <span>{tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
+              <span>&bull;</span>
+              <span>{driveMode === "with-driver" ? "With Driver" : "Self Drive"}</span>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenRoutePreview}
-            onMouseEnter={prefetchMapChunks}
-            onTouchStart={prefetchMapChunks}
-            className="shrink-0 px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-xl text-[10px] font-extrabold text-amber-400 border border-slate-600 flex items-center gap-1 active:scale-95 transition-transform"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
-            </svg>
-            <span>View Map</span>
-          </button>
+          <div className="shrink-0 px-3 py-1.5 bg-slate-900/60 rounded-xl border border-slate-700 text-xs font-black text-[#cb950f] shadow-inner whitespace-nowrap">
+            {distanceKm} km &bull; {formattedDuration}
+          </div>
         </div>
       )}
 
