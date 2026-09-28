@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useBookingStore } from "@/store/useBookingStore";
 import { siteConfig } from "@/config/siteConfig";
 import { calculateFare } from "@/lib/fare";
@@ -19,7 +19,13 @@ export default function BookingSummaryBottomSheet() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [website, setWebsite] = useState("");
+  const [formStartTime, setFormStartTime] = useState<number>(0);
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+
+  useEffect(() => {
+    setFormStartTime(Date.now());
+  }, []);
 
   const vehicle = selectedVehicle || siteConfig.vehicles[0];
   const distanceKm = route?.distanceKm || 0;
@@ -61,8 +67,13 @@ export default function BookingSummaryBottomSheet() {
   const handleConfirmWhatsApp = async () => {
     if (!validate()) return;
 
-    // 1. Insert into Supabase table first
-    const bookingCode = await saveBookingToSupabase(name.trim(), phone.trim());
+    // 1. Insert into Supabase table via rate-limited API route handler
+    const bookingCode = await saveBookingToSupabase(
+      name.trim(),
+      phone.trim(),
+      website,
+      formStartTime
+    );
 
     // 2. Construct Google Maps links
     const pickupMapUrl = pickup
@@ -103,7 +114,12 @@ Please confirm my booking. Thank you!`;
 
   const handleCallToBook = async () => {
     if (!validate()) return;
-    await saveBookingToSupabase(name.trim(), phone.trim());
+    await saveBookingToSupabase(
+      name.trim(),
+      phone.trim(),
+      website,
+      formStartTime
+    );
     window.location.href = `tel:${siteConfig.phone}`;
   };
 
@@ -186,6 +202,18 @@ Please confirm my booking. Thank you!`;
 
       {/* Customer Contact Fields */}
       <div className="space-y-3 pt-1">
+        {/* Honeypot field (hidden from real users to catch bots) */}
+        <input
+          type="text"
+          name="website"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          className="opacity-0 absolute -z-10 w-0 h-0 pointer-events-none"
+        />
+
         <div>
           <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
             Your Full Name

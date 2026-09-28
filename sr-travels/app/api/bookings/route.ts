@@ -1,18 +1,46 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-// In-memory sliding window rate limiter
-// Limits: 5 booking requests per 10 minutes per IP address
+// Server-side Supabase client using SUPABASE_SERVICE_ROLE_KEY (bypasses RLS)
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://yxefcwoirmdlqadqntjm.supabase.co";
+
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "";
+
+const supabaseServer = createClient(supabaseUrl, supabaseServiceKey);
+
+// Initialize Upstash Redis Rate Limiter if credentials exist
+let upstashRatelimit: Ratelimit | null = null;
+if (
+  process.env.UPSTASH_REDIS_REST_URL &&
+  process.env.UPSTASH_REDIS_REST_TOKEN
+) {
+  const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  });
+
+  upstashRatelimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, "10 m"),
+    analytics: true,
+  });
+}
+
+// Fallback in-memory rate limiter if Upstash env vars are missing
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const MAX_REQUESTS_PER_WINDOW = 5;
-
 const ipRequestMap = new Map<string, number[]>();
 
-function isRateLimited(ip: string): boolean {
+function isInMemoryRateLimited(ip: string): boolean {
   const now = Date.now();
   const timestamps = ipRequestMap.get(ip) || [];
-
-  // Filter out timestamps outside the current window
   const validTimestamps = timestamps.filter(
     (ts) => now - ts < RATE_LIMIT_WINDOW_MS
   );
@@ -29,15 +57,26 @@ function isRateLimited(ip: string): boolean {
 
 export async function POST(request: Request) {
   try {
-    // Extract IP address from request headers
+    // 1. Extract client IP from x-forwarded-for header
     const forwardedFor = request.headers.get("x-forwarded-for");
     const realIp = request.headers.get("x-real-ip");
     const clientIp = forwardedFor
       ? forwardedFor.split(",")[0].trim()
       : realIp || "127.0.0.1";
 
-    // Enforce Rate Limiting
-    if (isRateLimited(clientIp)) {
+    // 2. Upstash Redis / Fallback Rate Limiting (5 requests per 10 mins per IP)
+    if (upstashRatelimit) {
+      const { success } = await upstashRatelimit.limit(`booking_${clientIp}`);
+      if (!success) {
+        return NextResponse.json(
+          {
+            error:
+              "Too many booking attempts from your location. Please wait 10 minutes before trying again.",
+          },
+          { status: 429 }
+        );
+      }
+    } else if (isInMemoryRateLimited(clientIp)) {
       return NextResponse.json(
         {
           error:
@@ -65,9 +104,37 @@ export async function POST(request: Request) {
       vehicle_id,
       fare_total,
       travel_datetime,
+      website, // Honeypot field
+      form_start_time, // Form render timestamp
     } = body;
 
-    // Server-Side Input Validation
+    // 3. Honeypot check (reject if honeypot field is populated by bots)
+    if (website && typeof website === "string" && website.trim().length > 0) {
+      console.warn(`[Security Alert] Honeypot triggered by IP: ${clientIp}`);
+      return NextResponse.json(
+        { error: "Automated submission detected." },
+        { status: 400 }
+      );
+    }
+
+    // 4. Minimum time on form check (reject if submitted in under 3 seconds)
+    if (form_start_time) {
+      const elapsedMs = Date.now() - Number(form_start_time);
+      if (elapsedMs < 3000) {
+        console.warn(
+          `[Security Alert] Fast submission (${elapsedMs}ms) by IP: ${clientIp}`
+        );
+        return NextResponse.json(
+          {
+            error:
+              "Form submitted too quickly. Please review your details before confirming.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 5. Server-Side Input Validation
     const trimmedName = typeof name === "string" ? name.trim() : "";
     const trimmedPhone = typeof phone === "string" ? phone.trim() : "";
 
@@ -119,7 +186,6 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      // Allow a 1-hour grace window for clock drift
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       if (travelDate < oneHourAgo) {
         return NextResponse.json(
@@ -129,8 +195,8 @@ export async function POST(request: Request) {
       }
     }
 
-    // Insert booking into Supabase (enforcing status='new')
-    const { data, error } = await supabase
+    // 6. Insert booking into Supabase using server-side client (service role)
+    const { data, error } = await supabaseServer
       .from("bookings")
       .insert([
         {

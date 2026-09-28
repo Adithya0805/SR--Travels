@@ -1,12 +1,12 @@
--- Supabase Idempotent Migration Script for SR Travels
--- Fixes "column 'status' does not exist" on pre-existing tables
+-- Supabase Hardened Database Schema for SR Travels
+-- Public INSERT policy REMOVED. All guest inserts MUST go through /api/bookings server route with SUPABASE_SERVICE_ROLE_KEY.
 
 -- 1. Create table if it doesn't exist at all
 create table if not exists public.bookings (
   id uuid default gen_random_uuid() primary key
 );
 
--- 2. Ensure all columns exist (adds missing columns if table already existed)
+-- 2. Ensure all columns exist
 alter table public.bookings add column if not exists booking_code text;
 alter table public.bookings add column if not exists name text;
 alter table public.bookings add column if not exists phone text;
@@ -26,7 +26,7 @@ alter table public.bookings add column if not exists travel_datetime text;
 alter table public.bookings add column if not exists status text default 'new';
 alter table public.bookings add column if not exists created_at timestamp with time zone default timezone('utc'::text, now());
 
--- 3. Safely update constraints
+-- 3. Update constraints
 alter table public.bookings drop constraint if exists bookings_phone_check;
 alter table public.bookings drop constraint if exists bookings_name_check;
 alter table public.bookings drop constraint if exists bookings_fare_total_check;
@@ -42,26 +42,14 @@ alter table public.bookings add constraint bookings_status_check check (status i
 -- 4. Enable Row Level Security (RLS)
 alter table public.bookings enable row level security;
 
--- 5. Drop all existing policies before recreating
+-- 5. Drop all existing policies
 drop policy if exists "Allow public insert" on public.bookings;
 drop policy if exists "No public select" on public.bookings;
 drop policy if exists "Allow admin select" on public.bookings;
 drop policy if exists "Allow admin update" on public.bookings;
 drop policy if exists "Allow admin delete" on public.bookings;
 
--- Policy A: Hardened Public Insert Policy
-create policy "Allow public insert"
-  on public.bookings
-  for insert
-  with check (
-    status = 'new'
-    and phone ~ '^[6-9][0-9]{9}$'
-    and length(trim(name)) >= 2 and length(trim(name)) <= 60
-    and fare_total > 0 and fare_total < 100000
-    and distance_km > 0 and distance_km < 3000
-  );
-
--- Policy B: Restricted Admin Select Policy
+-- Policy 1: Restricted Admin Select Policy
 create policy "Allow admin select"
   on public.bookings
   for select
@@ -70,7 +58,7 @@ create policy "Allow admin select"
     (auth.jwt() ->> 'email') = 'admin@srtravels.com'
   );
 
--- Policy C: Restricted Admin Update Policy
+-- Policy 2: Restricted Admin Update Policy
 create policy "Allow admin update"
   on public.bookings
   for update
@@ -82,4 +70,6 @@ create policy "Allow admin update"
     (auth.jwt() ->> 'email') = 'admin@srtravels.com'
   );
 
--- Note: No DELETE policy is created. Deletions via client API are completely blocked.
+-- NOTE: Public INSERT policy is intentionally omitted!
+-- Direct anonymous browser inserts via Supabase SDK are blocked by RLS.
+-- Bookings can ONLY be inserted via the backend API handler (/api/bookings) using SUPABASE_SERVICE_ROLE_KEY.

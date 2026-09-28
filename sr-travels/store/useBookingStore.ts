@@ -79,7 +79,12 @@ interface BookingState {
   confirmDrop: (location: MapLocation) => void;
   confirmTripDetails: (details: TripDetails) => void;
   confirmVehicleSelection: (vehicle: Vehicle) => void;
-  saveBookingToSupabase: (name: string, phone: string) => Promise<string>;
+  saveBookingToSupabase: (
+    name: string,
+    phone: string,
+    website?: string,
+    formStartTime?: number
+  ) => Promise<string>;
   rebook: (record: SavedBookingRecord) => void;
   fetchRoute: () => Promise<void>;
   resetBooking: () => void;
@@ -150,7 +155,12 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     });
   },
 
-  saveBookingToSupabase: async (name: string, phone: string) => {
+  saveBookingToSupabase: async (
+    name: string,
+    phone: string,
+    website?: string,
+    formStartTime?: number
+  ) => {
     set({ isSubmittingBooking: true });
     const { pickup, drop, route, tripDetails, selectedVehicle } = get();
     const vehicle = selectedVehicle || siteConfig.vehicles[0];
@@ -189,6 +199,8 @@ export const useBookingStore = create<BookingState>((set, get) => ({
           vehicle_id: vehicle.id,
           fare_total: fare.total,
           travel_datetime: travelDateTime,
+          website: website || "",
+          form_start_time: formStartTime || Date.now(),
         }),
       });
 
