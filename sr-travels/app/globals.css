@@ -1,0 +1,42 @@
+@import "leaflet/dist/leaflet.css";
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary-emerald: #10B981;
+    --accent-gold: #F5B700;
+    --text-slate: #1E293B;
+  }
+
+  html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    color: #1E293B;
+    background-color: #1E293B;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+}
+
+/* Ensure Leaflet controls & container fill space nicely */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-attribution {
+  font-size: 9px !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(4px);
+}
