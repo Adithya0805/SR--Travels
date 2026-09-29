@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import L from "leaflet";
+import { motion } from "framer-motion";
 import { searchPlaces, reverseGeocode, MapLocation } from "@/lib/maps";
+import { getBottomSheetVariants, useReducedMotion } from "@/lib/motion";
 
 export interface MapPickerProps {
   target: "pickup" | "drop";
@@ -58,6 +60,9 @@ export default function MapPicker({
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+
+  const shouldReduceMotion = useReducedMotion();
+  const bottomSheetVariants = getBottomSheetVariants(shouldReduceMotion);
 
   const isPickup = target === "pickup";
   const pinBadge = isPickup ? "P" : "D";
@@ -318,7 +323,16 @@ export default function MapPicker({
       <div ref={mapContainerRef} className="w-full flex-1 z-0" />
 
       {/* Bottom Address Confirmation Card */}
-      <div className="absolute bottom-4 left-4 right-4 z-20 bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-2xl border border-slate-100 space-y-3 max-w-md mx-auto">
+      <motion.div
+        variants={bottomSheetVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="absolute bottom-4 left-4 right-4 z-20 bg-white/95 backdrop-blur-md rounded-3xl p-4 shadow-2xl border border-slate-100 space-y-3 max-w-md mx-auto"
+      >
+        {/* Drag handle bar */}
+        <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-1.5 active:scale-95 transition-transform cursor-grab shrink-0" />
+
         <div className="flex items-start gap-3">
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-extrabold text-xs shrink-0 mt-0.5 shadow-sm"
@@ -351,7 +365,7 @@ export default function MapPicker({
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
           </svg>
         </button>
-      </div>
+      </motion.div>
     </div>
   );
 }

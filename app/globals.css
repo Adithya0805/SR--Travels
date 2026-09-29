@@ -68,3 +68,36 @@
 .animate-bounce-in {
   animation: bounce-in 0.5s ease-out forwards;
 }
+
+/* Requirement 3: Button press scale(0.96) + brightness(0.95) instant, disabled fade 150ms */
+button,
+a[role="button"],
+.btn-action {
+  transition: transform 0s, filter 0s, opacity 150ms ease;
+}
+
+button:active:not(:disabled),
+a[role="button"]:active,
+.btn-action:active:not(:disabled) {
+  transform: scale(0.96);
+  filter: brightness(0.95);
+}
+
+button:disabled,
+.btn-action:disabled {
+  opacity: 0.5 !important;
+  transition: opacity 150ms ease !important;
+  pointer-events: none;
+}
+
+/* Requirement 10: Global prefers-reduced-motion fallback */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+

@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useBookingStore } from "@/store/useBookingStore";
 import { siteConfig, Vehicle } from "@/config/siteConfig";
 import { calculateFare } from "@/lib/fare";
+import { AnimatedFare } from "@/components/AnimatedFare";
+import { useReducedMotion, getCardVariants, EASINGS } from "@/lib/motion";
 
 interface VehiclesScreenProps {
   onOpenRoutePreview?: () => void;
@@ -48,6 +51,7 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
   } = useBookingStore();
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const distanceKm = route?.distanceKm || 0;
 
@@ -124,8 +128,13 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
         </div>
       )}
 
-      {/* Fuel Reference Rate Card per Requirement 5 */}
-      <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex items-center justify-between">
+      {/* Fuel Reference Rate Card per Requirement 5 & 8 */}
+      <motion.div
+        variants={getCardVariants(shouldReduceMotion, 0)}
+        initial="hidden"
+        animate="visible"
+        className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex items-center justify-between"
+      >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 shrink-0">
             {/* Fuel Pump Icon */}
@@ -145,7 +154,7 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
         <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
           TN Reference
         </span>
-      </div>
+      </motion.div>
 
       {/* Vehicle Cards List */}
       <div className="space-y-3">
@@ -155,14 +164,21 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
           const isExpanded = expandedId === v.id;
 
           return (
-            <div
+            <motion.div
               key={v.id}
               onClick={() => setVehicleId(v.id)}
-              className={`relative bg-white rounded-3xl p-4 transition-all cursor-pointer shadow-md ${
-                isSelected
-                  ? "ring-2 ring-emerald-500 shadow-emerald-500/10 border-emerald-500"
-                  : "border border-slate-200 hover:border-slate-300"
-              }`}
+              animate={{
+                scale: isSelected && !shouldReduceMotion ? 1.02 : 1,
+                borderColor: isSelected ? "#10b981" : "#e2e8f0",
+                boxShadow: isSelected
+                  ? "0 10px 25px -5px rgba(16, 185, 129, 0.2), 0 8px 10px -6px rgba(16, 185, 129, 0.1)"
+                  : "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
+              }}
+              transition={{
+                duration: 0.15,
+                ease: EASINGS.standard,
+              }}
+              className="relative bg-white rounded-3xl p-4 cursor-pointer border"
             >
               {/* Best Value Tag */}
               {isBestValue && (
@@ -201,8 +217,8 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
 
                 {/* Total Fare & Selection Radio */}
                 <div className="text-right shrink-0">
-                  <div className="text-base font-black text-emerald-600">
-                    ₹{v.fare.total.toLocaleString()}
+                  <div className="text-base font-black text-emerald-600 flex items-center justify-end">
+                    <AnimatedFare value={v.fare.total} prefix="₹" />
                   </div>
                   <div className="flex items-center justify-end gap-1.5 mt-1">
                     <button
@@ -242,7 +258,7 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
                   ))}
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
       </div>
@@ -253,7 +269,11 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
         onClick={() => setScreen("review")}
         className="w-full h-[52px] rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-extrabold text-sm shadow-xl shadow-emerald-500/25 active:scale-95 transition-all flex items-center justify-center gap-2"
       >
-        <span>Continue with {selectedVehicleObj.name.split(" ")[0]} (₹{selectedVehicleObj.fare.total.toLocaleString()})</span>
+        <span className="flex items-center gap-1">
+          <span>Continue with {selectedVehicleObj.name.split(" ")[0]} (</span>
+          <AnimatedFare value={selectedVehicleObj.fare.total} prefix="₹" />
+          <span>)</span>
+        </span>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
         </svg>

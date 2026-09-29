@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useBookingStore, LocationPoint } from "@/store/useBookingStore";
+import { getBottomSheetVariants, backdropVariants, useReducedMotion } from "@/lib/motion";
 
 interface ChatMessage {
   id: string;
@@ -34,6 +36,9 @@ export default function AssistantChat() {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const shouldReduceMotion = useReducedMotion();
+  const bottomSheetVariants = getBottomSheetVariants(shouldReduceMotion);
 
   // Zustand Store bindings
   const {
@@ -225,11 +230,29 @@ export default function AssistantChat() {
         </button>
       </div>
 
-      {/* Slide-up Chat Dialog */}
-      {isOpen && (
-        <div className="fixed bottom-34 right-4 z-50 w-[calc(100vw-32px)] max-w-sm h-[480px] bg-white rounded-3xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-200 select-none">
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              variants={backdropVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 bg-slate-900/30 z-40 backdrop-blur-[1px] sm:hidden"
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="fixed bottom-24 right-4 z-50 w-[calc(100vw-32px)] max-w-sm h-[480px] bg-white rounded-3xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden select-none"
+            >
           {/* Header */}
-          <div className="bg-[#1c2d4f] text-white px-4 py-3 flex items-center justify-between border-b border-slate-700/60 shrink-0">
+          <div className="bg-[#1c2d4f] text-white px-4 pt-2 pb-3 flex flex-col border-b border-slate-700/60 shrink-0">
+            {/* Drag handle bar */}
+            <div className="w-10 h-1 bg-white/25 rounded-full mx-auto mb-2 active:scale-95 transition-transform cursor-grab shrink-0" />
+            <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-slate-800 border border-[#cb950f] flex items-center justify-center text-[#cb950f]">
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -254,12 +277,16 @@ export default function AssistantChat() {
               ✕
             </button>
           </div>
+        </div>
 
-          {/* Messages Scroll Area */}
+        {/* Messages Scroll Area */}
           <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-slate-50 text-xs">
             {messages.map((m) => (
-              <div
+              <motion.div
                 key={m.id}
+                initial={{ opacity: shouldReduceMotion ? 1 : 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
                 className={`flex flex-col ${
                   m.sender === "user" ? "items-end" : "items-start"
                 }`}
@@ -291,19 +318,52 @@ export default function AssistantChat() {
                   )}
                 </div>
                 <span className="text-[9px] text-slate-400 mt-1 px-1">{m.timestamp}</span>
-              </div>
+              </motion.div>
             ))}
 
-            {/* Loading Indicator */}
+            {/* Loading Indicator per Requirement 9 */}
             {isLoading && (
-              <div className="flex items-center gap-2 text-slate-500 bg-white border border-slate-200 rounded-2xl px-3.5 py-2 max-w-[60%]">
-                <div className="flex gap-1 items-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1c2d4f] animate-bounce" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#cb950f] animate-bounce [animation-delay:0.15s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.3s]" />
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-2 text-slate-500 bg-white border border-slate-200 rounded-2xl px-3.5 py-2 max-w-[60%]"
+              >
+                <div className="flex gap-1.5 items-center">
+                  <motion.span
+                    animate={shouldReduceMotion ? { opacity: 1 } : { opacity: [0.2, 1, 0.2] }}
+                    transition={{
+                      duration: 0.8,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0,
+                    }}
+                    className="w-2 h-2 rounded-full bg-[#1c2d4f]"
+                  />
+                  <motion.span
+                    animate={shouldReduceMotion ? { opacity: 1 } : { opacity: [0.2, 1, 0.2] }}
+                    transition={{
+                      duration: 0.8,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.2,
+                    }}
+                    className="w-2 h-2 rounded-full bg-[#cb950f]"
+                  />
+                  <motion.span
+                    animate={shouldReduceMotion ? { opacity: 1 } : { opacity: [0.2, 1, 0.2] }}
+                    transition={{
+                      duration: 0.8,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.4,
+                    }}
+                    className="w-2 h-2 rounded-full bg-emerald-500"
+                  />
                 </div>
                 <span className="text-[10px] font-semibold text-slate-400">Thinking...</span>
-              </div>
+              </motion.div>
             )}
 
             <div ref={messagesEndRef} />
@@ -354,8 +414,10 @@ export default function AssistantChat() {
               </svg>
             </button>
           </form>
-        </div>
-      )}
+        </motion.div>
+      </>
+    )}
+  </AnimatePresence>
     </>
   );
 }

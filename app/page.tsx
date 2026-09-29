@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useEffect } from "react";
-import { useBookingStore, LocationPoint } from "@/store/useBookingStore";
+import { useState, useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useBookingStore, LocationPoint, ScreenState } from "@/store/useBookingStore";
 import { siteConfig } from "@/config/siteConfig";
 import { LogoIcon } from "@/components/Logo";
 import OfflineBanner from "@/components/OfflineBanner";
@@ -16,6 +17,19 @@ import TariffView from "@/components/tabs/TariffView";
 import ContactView from "@/components/tabs/ContactView";
 import AssistantChat from "@/components/AssistantChat";
 import { prefetchMapChunks } from "@/lib/prefetchMap";
+import {
+  getScreenVariants,
+  getBottomSheetVariants,
+  backdropVariants,
+  useReducedMotion,
+} from "@/lib/motion";
+
+const SCREEN_ORDER: Record<ScreenState, number> = {
+  home: 0,
+  vehicles: 1,
+  review: 2,
+  done: 3,
+};
 
 // Map components loaded strictly on-demand via next/dynamic (ssr: false)
 const MapPicker = dynamic(() => import("@/components/map/MapPicker"), {
@@ -50,6 +64,20 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabId>("book");
   const [mapPickerTarget, setMapPickerTarget] = useState<"pickup" | "drop" | null>(null);
   const [showRouteModal, setShowRouteModal] = useState<boolean>(false);
+
+  const shouldReduceMotion = useReducedMotion();
+  const screenVariants = getScreenVariants(shouldReduceMotion);
+  const bottomSheetVariants = getBottomSheetVariants(shouldReduceMotion);
+
+  // Track navigation direction (1 = forward, -1 = back)
+  const prevScreenRef = useRef<ScreenState>(screen);
+  const prevOrder = SCREEN_ORDER[prevScreenRef.current] ?? 0;
+  const currentOrder = SCREEN_ORDER[screen] ?? 0;
+  const direction = currentOrder >= prevOrder ? 1 : -1;
+
+  useEffect(() => {
+    prevScreenRef.current = screen;
+  }, [screen]);
 
   // Requirement 4: Prefetch map chunks using requestIdleCallback after Home renders
   useEffect(() => {
@@ -120,22 +148,64 @@ export default function Home() {
       </header>
 
       {/* Main Screen Container with bottom padding for fixed tab bar */}
-      <main className="flex-1 w-full h-full overflow-y-auto px-4 pt-18 pb-24">
+      <main className="flex-1 w-full h-full overflow-y-auto overflow-x-hidden px-4 pt-18 pb-24">
         {activeTab === "book" && (
-          <>
+          <AnimatePresence mode="wait" custom={direction} initial={false}>
             {screen === "home" && (
-              <HomeScreen onOpenMapPicker={handleOpenMapPicker} />
+              <motion.div
+                key="home"
+                custom={direction}
+                variants={screenVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="w-full"
+              >
+                <HomeScreen onOpenMapPicker={handleOpenMapPicker} />
+              </motion.div>
             )}
             {screen === "vehicles" && (
-              <VehiclesScreen />
+              <motion.div
+                key="vehicles"
+                custom={direction}
+                variants={screenVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="w-full"
+              >
+                <VehiclesScreen />
+              </motion.div>
             )}
             {screen === "review" && (
-              <ReviewScreen
-                onOpenRoutePreview={() => setShowRouteModal(true)}
-              />
+              <motion.div
+                key="review"
+                custom={direction}
+                variants={screenVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="w-full"
+              >
+                <ReviewScreen
+                  onOpenRoutePreview={() => setShowRouteModal(true)}
+                />
+              </motion.div>
             )}
-            {screen === "done" && <DoneScreen />}
-          </>
+            {screen === "done" && (
+              <motion.div
+                key="done"
+                custom={direction}
+                variants={screenVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="w-full"
+              >
+                <DoneScreen />
+              </motion.div>
+            )}
+          </AnimatePresence>
         )}
 
         {activeTab === "trips" && (
@@ -158,46 +228,65 @@ export default function Home() {
       <BottomTabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Map Picker Modal (rendered ONLY when user opens it) */}
-      {mapPickerTarget && (
-        <MapPicker
-          target={mapPickerTarget}
-          initialLocation={mapPickerTarget === "pickup" ? pickup : drop}
-          onConfirm={handleConfirmLocation}
-          onClose={() => setMapPickerTarget(null)}
-        />
-      )}
+      <AnimatePresence>
+        {mapPickerTarget && (
+          <MapPicker
+            target={mapPickerTarget}
+            initialLocation={mapPickerTarget === "pickup" ? pickup : drop}
+            onConfirm={handleConfirmLocation}
+            onClose={() => setMapPickerTarget(null)}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Large Route Preview Modal (rendered ONLY when user clicks "View larger") */}
-      {showRouteModal && pickup && drop && route && (
-        <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-4 flex-1 flex flex-col overflow-hidden max-w-lg w-full mx-auto shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="text-sm font-black text-slate-800">Route Map</h3>
-                <p className="text-[11px] text-slate-400">
-                  {route.distanceKm} km &bull; ~{route.durationMin} mins
-                </p>
+      {/* Large Route Preview Modal (Bottom sheet animation per Requirement 2) */}
+      <AnimatePresence>
+        {showRouteModal && pickup && drop && route && (
+          <motion.div
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col p-4 justify-end sm:justify-center"
+          >
+            <motion.div
+              variants={bottomSheetVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="bg-white rounded-3xl p-4 flex-1 sm:flex-none sm:h-[80vh] flex flex-col overflow-hidden max-w-lg w-full mx-auto shadow-2xl"
+            >
+              {/* Drag Handle Bar (scales down 5% on touch) */}
+              <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto mb-2 active:scale-95 transition-transform cursor-grab shrink-0" />
+
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h3 className="text-sm font-black text-slate-800">Route Map</h3>
+                  <p className="text-[11px] text-slate-400">
+                    {route.distanceKm} km &bull; ~{route.durationMin} mins
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRouteModal(false)}
+                  aria-label="Close route map"
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold active:scale-95 transition-transform"
+                >
+                  ✕
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowRouteModal(false)}
-                aria-label="Close route map"
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold active:scale-95 transition-transform"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 w-full mt-3 rounded-2xl overflow-hidden relative">
-              <RoutePreview
-                pickup={pickup}
-                drop={drop}
-                route={route}
-                className="h-full w-full"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="flex-1 w-full mt-3 rounded-2xl overflow-hidden relative">
+                <RoutePreview
+                  pickup={pickup}
+                  drop={drop}
+                  route={route}
+                  className="h-full w-full"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

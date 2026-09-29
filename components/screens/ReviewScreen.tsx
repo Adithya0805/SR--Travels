@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 import { useBookingStore } from "@/store/useBookingStore";
 import { siteConfig } from "@/config/siteConfig";
 import { calculateFare } from "@/lib/fare";
+import { AnimatedFare } from "@/components/AnimatedFare";
+import { useReducedMotion, getCardVariants } from "@/lib/motion";
 
 const RoutePreview = dynamic(() => import("@/components/map/RoutePreview"), {
   ssr: false,
@@ -67,6 +70,41 @@ export default function ReviewScreen({ onOpenRoutePreview }: ReviewScreenProps) 
       })
       .catch((err) => console.warn("Weather fetch failed:", err));
   }, [drop?.lat, drop?.lng, drop?.label, drop?.address, date]);
+
+  const shouldReduceMotion = useReducedMotion();
+  const hasAnimatedRoute = useRef(false);
+
+  useEffect(() => {
+    hasAnimatedRoute.current = true;
+  }, []);
+
+  const svgPoints = useMemo(() => {
+    if (!route?.geometry || route.geometry.length < 2) {
+      return "16,42 60,25 120,45 180,20 240,38 304,25";
+    }
+    const lats = route.geometry.map((c) => c[0]);
+    const lngs = route.geometry.map((c) => c[1]);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const latSpan = maxLat - minLat || 0.0001;
+    const lngSpan = maxLng - minLng || 0.0001;
+
+    // Sample max 40 points for smooth performance
+    const step = Math.max(1, Math.floor(route.geometry.length / 40));
+    const sampled = route.geometry.filter(
+      (_, idx) => idx % step === 0 || idx === route.geometry!.length - 1
+    );
+
+    return sampled
+      .map(([lat, lng]) => {
+        const x = 16 + ((lng - minLng) / lngSpan) * (320 - 32);
+        const y = 52 - ((lat - minLat) / latSpan) * (52 - 12);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+  }, [route?.geometry]);
 
   const vehicle =
     siteConfig.vehicles.find((v) => v.id === vehicleId) ||
@@ -184,6 +222,46 @@ Please confirm my driver and booking details.`;
 
       {/* Trip & Fare Breakdown Card */}
       <div className="bg-white rounded-3xl p-5 shadow-xl border border-slate-100 space-y-4">
+        {/* Animated SVG Route Line per Requirement 6 */}
+        <div className="bg-slate-50/80 rounded-2xl p-3 border border-slate-100 overflow-hidden">
+          <div className="flex items-center justify-between text-[10px] font-extrabold text-slate-400 mb-1 px-0.5">
+            <span className="flex items-center gap-1.5 text-emerald-600 truncate max-w-[45%]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              <span className="truncate">{pickup?.label || "Pickup"}</span>
+            </span>
+            <span className="shrink-0 px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600 font-bold text-[9px]">
+              {distanceKm} km route track
+            </span>
+            <span className="flex items-center gap-1.5 text-slate-700 truncate max-w-[45%] justify-end">
+              <span className="truncate">{drop?.label || "Drop"}</span>
+              <span className="w-2 h-2 rounded-full bg-[#1c2d4f] shrink-0" />
+            </span>
+          </div>
+          <svg className="w-full h-10 overflow-visible" viewBox="0 0 320 60" preserveAspectRatio="none">
+            {/* Guide line */}
+            <polyline
+              points={svgPoints}
+              fill="none"
+              stroke="#cbd5e1"
+              strokeWidth="2.5"
+              strokeDasharray="4 4"
+              strokeLinecap="round"
+            />
+            {/* Animated route polyline */}
+            <motion.polyline
+              points={svgPoints}
+              fill="none"
+              stroke="#10b981"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              initial={hasAnimatedRoute.current || shouldReduceMotion ? { pathLength: 1 } : { pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+          </svg>
+        </div>
+
         {/* Route Details */}
         <div className="space-y-2 border-b border-slate-100 pb-3.5">
           <div className="flex items-start gap-2.5">
@@ -228,9 +306,12 @@ Please confirm my driver and booking details.`;
           </div>
         </div>
 
-        {/* Weather Advisory Card per Requirement 8 (Shown ONLY if rain > 50% or temp > 40°C) */}
+        {/* Weather Advisory Card per Requirement 8 */}
         {weatherAdvisory?.hasAdvisory && (
-          <div
+          <motion.div
+            variants={getCardVariants(shouldReduceMotion, 0.05)}
+            initial="hidden"
+            animate="visible"
             className={`p-3 rounded-2xl border flex items-center gap-2.5 text-xs ${
               weatherAdvisory.advisoryType === "heat"
                 ? "bg-amber-50 border-amber-200 text-amber-900"
@@ -248,7 +329,7 @@ Please confirm my driver and booking details.`;
                 {weatherAdvisory.message}
               </p>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Fare Summary */}
@@ -298,7 +379,9 @@ Please confirm my driver and booking details.`;
 
           <div className="flex justify-between items-baseline pt-2 border-t border-slate-100 mt-2">
             <span className="text-sm font-extrabold text-slate-900">Total Estimated Fare</span>
-            <span className="text-2xl font-black text-emerald-600">₹{fare.total.toLocaleString()}</span>
+            <div className="text-2xl font-black text-emerald-600 flex items-center justify-end">
+              <AnimatedFare value={fare.total} prefix="₹" />
+            </div>
           </div>
 
           <div className="text-[10px] text-slate-400 italic pt-1">
