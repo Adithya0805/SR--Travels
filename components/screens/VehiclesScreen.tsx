@@ -112,7 +112,7 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
               <span className="truncate">{drop.label || drop.address}</span>
             </div>
             <div className="text-[10px] text-slate-300 mt-0.5 flex items-center gap-1.5">
-              <span>{tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
+              <span>{distanceKm <= 40 ? "Local (≤40 km)" : tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
               <span>&bull;</span>
               <span>{driveMode === "with-driver" ? "With Driver" : "Self Drive"}</span>
             </div>
@@ -123,6 +123,29 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
           </div>
         </div>
       )}
+
+      {/* Fuel Reference Rate Card per Requirement 5 */}
+      <div className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 shrink-0">
+            {/* Fuel Pump Icon */}
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33a2.5 2.5 0 002.5 2.5c.34 0 .65-.09.93-.24l1.86 1.86V19a1 1 0 01-1 1h-1v-8a2 2 0 00-2-2h-7a2 2 0 00-2 2v9H4a1 1 0 01-1-1V5a1 1 0 011-1h8a1 1 0 011 1v2h2V5a3 3 0 00-3-3H4a3 3 0 00-3 3v15a3 3 0 003 3h13a3 3 0 003-3v-7.59l2.77-2.77c.39-.39.39-1.02 0-1.41zM6 10h5v4H6v-4zm12 0a.5.5 0 110-1 .5.5 0 010 1z" />
+            </svg>
+          </div>
+          <div>
+            <div className="text-xs font-black text-slate-800">
+              Fuel Reference Rate: ₹{siteConfig.baselineFuelPrice}/L
+            </div>
+            <div className="text-[10px] text-slate-400 font-medium">
+              Manually updated
+            </div>
+          </div>
+        </div>
+        <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+          TN Reference
+        </span>
+      </div>
 
       {/* Vehicle Cards List */}
       <div className="space-y-3">
@@ -169,7 +192,9 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
 
                   <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
                     {driveMode === "with-driver"
-                      ? `₹${v.ratePerKm}/km &bull; ₹${siteConfig.driverBataPerDay} bata/day`
+                      ? distanceKm <= 40
+                        ? `₹${v.localRatePerKm}/km local &bull; Fuel adj +₹${v.fare.fuelAdjustment}/km`
+                        : `₹${v.ratePerKm}/km &bull; ₹${siteConfig.driverBataPerDay} bata/day`
                       : `₹${v.ratePerDay}/day &bull; ${v.kmCapPerDay} km/day included`}
                   </p>
                 </div>

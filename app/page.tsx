@@ -14,6 +14,7 @@ import BottomTabBar, { TabId } from "@/components/BottomTabBar";
 import TripsView from "@/components/tabs/TripsView";
 import TariffView from "@/components/tabs/TariffView";
 import ContactView from "@/components/tabs/ContactView";
+import AssistantChat from "@/components/AssistantChat";
 import { prefetchMapChunks } from "@/lib/prefetchMap";
 
 // Map components loaded strictly on-demand via next/dynamic (ssr: false)
@@ -149,6 +150,9 @@ export default function Home() {
 
         {activeTab === "contact" && <ContactView />}
       </main>
+
+      {/* Floating AI Trip Assistant Chat (Accessible on all screens) */}
+      <AssistantChat />
 
       {/* Fixed Bottom Tab Bar: Book | Trips | Tariff | Contact */}
       <BottomTabBar activeTab={activeTab} onTabChange={setActiveTab} />

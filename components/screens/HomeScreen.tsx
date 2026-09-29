@@ -20,6 +20,7 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
     driveMode,
     days,
     passengers,
+    highlightedField,
     isRouteLoading,
     routeError,
     setPickup,
@@ -388,7 +389,11 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
                   onFocus={() => setActiveSearch("pickup")}
                   onKeyDown={(e) => handleKeyDown(e, "pickup", pickupSuggestions)}
                   placeholder="Enter pickup city, airport, landmark..."
-                  className="w-full h-12 pl-10 pr-20 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                  className={`w-full h-12 pl-10 pr-20 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    highlightedField === "pickup"
+                      ? "border-emerald-500 ring-4 ring-emerald-500/30 bg-emerald-50/60 scale-[1.01]"
+                      : "border-slate-200"
+                  }`}
                 />
 
                 {/* Pickup Action Icons: "use my location" + "pick on map" */}
@@ -494,7 +499,11 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
                   onFocus={() => setActiveSearch("drop")}
                   onKeyDown={(e) => handleKeyDown(e, "drop", dropSuggestions)}
                   placeholder="Enter destination city, hotel, address..."
-                  className="w-full h-12 pl-10 pr-12 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                  className={`w-full h-12 pl-10 pr-12 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all ${
+                    highlightedField === "drop"
+                      ? "border-emerald-500 ring-4 ring-emerald-500/30 bg-emerald-50/60 scale-[1.01]"
+                      : "border-slate-200"
+                  }`}
                 />
 
                 {/* "pick on map" icon button for Drop */}

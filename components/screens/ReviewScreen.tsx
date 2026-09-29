@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useBookingStore } from "@/store/useBookingStore";
 import { siteConfig } from "@/config/siteConfig";
@@ -45,6 +45,28 @@ export default function ReviewScreen({ onOpenRoutePreview }: ReviewScreenProps) 
   const [honeypot, setHoneypot] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formStartTime] = useState<number>(Date.now());
+  const [weatherAdvisory, setWeatherAdvisory] = useState<{
+    hasAdvisory: boolean;
+    advisoryType: "rain" | "heat" | null;
+    message: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!drop?.lat || !drop?.lng) return;
+    const dropLabel = drop.label || drop.address || "destination";
+    fetch(
+      `/api/weather?lat=${drop.lat}&lng=${drop.lng}&date=${date}&label=${encodeURIComponent(dropLabel)}`
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.hasAdvisory) {
+          setWeatherAdvisory(data);
+        } else {
+          setWeatherAdvisory(null);
+        }
+      })
+      .catch((err) => console.warn("Weather fetch failed:", err));
+  }, [drop?.lat, drop?.lng, drop?.label, drop?.address, date]);
 
   const vehicle =
     siteConfig.vehicles.find((v) => v.id === vehicleId) ||
@@ -206,17 +228,73 @@ Please confirm my driver and booking details.`;
           </div>
         </div>
 
+        {/* Weather Advisory Card per Requirement 8 (Shown ONLY if rain > 50% or temp > 40°C) */}
+        {weatherAdvisory?.hasAdvisory && (
+          <div
+            className={`p-3 rounded-2xl border flex items-center gap-2.5 text-xs ${
+              weatherAdvisory.advisoryType === "heat"
+                ? "bg-amber-50 border-amber-200 text-amber-900"
+                : "bg-blue-50 border-blue-200 text-blue-900"
+            }`}
+          >
+            <span className="text-base shrink-0">
+              {weatherAdvisory.advisoryType === "heat" ? "☀️" : "🌧️"}
+            </span>
+            <div className="flex-1 min-w-0">
+              <span className="font-extrabold block text-[11px]">
+                {weatherAdvisory.advisoryType === "heat" ? "Heat Advisory" : "Weather Notice"}
+              </span>
+              <p className="text-[10px] leading-tight font-medium opacity-90">
+                {weatherAdvisory.message}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Fare Summary */}
         <div className="space-y-1.5 pt-1">
           <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
             Fare Summary
           </div>
-          {fare.breakdown.map((item, idx) => (
-            <div key={idx} className="flex justify-between text-xs text-slate-600">
-              <span>{item.split("=")[0]}</span>
-              <span className="font-bold text-slate-800">{item.split("=")[1]}</span>
-            </div>
-          ))}
+          {fare.breakdown.map((item, idx) => {
+            const isFuelAdj = item.toLowerCase().includes("fuel adjustment");
+            const parts = item.includes("=") ? item.split("=") : item.split(":");
+            let label = parts[0]?.trim() || "";
+            const val = parts.slice(1).join("=").trim() || parts.slice(1).join(":").trim();
+
+            if (isFuelAdj && !label.endsWith(":")) {
+              label = `${label}:`;
+            }
+
+            return (
+              <div key={idx} className="flex justify-between items-center text-xs text-slate-600">
+                <span className="flex items-center gap-1.5">
+                  <span>{label}</span>
+                  {isFuelAdj && (
+                    <span
+                      className="group relative cursor-pointer text-slate-400 hover:text-slate-600 inline-flex items-center"
+                      title="Included based on current fuel reference rate."
+                    >
+                      <svg
+                        className="w-3.5 h-3.5 text-slate-400 hover:text-slate-600"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0-4h.01" />
+                      </svg>
+                      <span className="absolute bottom-full left-0 mb-1.5 hidden group-hover:block bg-slate-900 text-white text-[10px] rounded px-2.5 py-1 whitespace-nowrap shadow-xl z-30 pointer-events-none">
+                        Included based on current fuel reference rate.
+                      </span>
+                    </span>
+                  )}
+                </span>
+                <span className="font-bold text-slate-800">{val}</span>
+              </div>
+            );
+          })}
 
           <div className="flex justify-between items-baseline pt-2 border-t border-slate-100 mt-2">
             <span className="text-sm font-extrabold text-slate-900">Total Estimated Fare</span>

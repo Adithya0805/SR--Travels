@@ -71,6 +71,7 @@ interface BookingStore {
   customerName: string;
   customerPhone: string;
   isSubmittingBooking: boolean;
+  highlightedField: string | null;
 
   // Actions
   setPickup: (pickup: LocationPoint | null) => void;
@@ -84,6 +85,7 @@ interface BookingStore {
   setVehicleId: (vehicleId: string) => void;
   setRoute: (route: RouteData | null) => void;
   setScreen: (screen: ScreenState) => void;
+  setHighlightedField: (field: string | null) => void;
 
   fetchRoute: () => Promise<RouteData | null>;
   saveBookingToSupabase: (
@@ -115,6 +117,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   customerName: "",
   customerPhone: "",
   isSubmittingBooking: false,
+  highlightedField: null,
 
   setPickup: (pickup) => {
     set({ pickup, route: null, routeError: null });
@@ -133,6 +136,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   setVehicleId: (vehicleId) => set({ vehicleId }),
   setRoute: (route) => set({ route }),
   setScreen: (screen) => set({ screen }),
+  setHighlightedField: (highlightedField) => set({ highlightedField }),
 
   fetchRoute: async () => {
     const { pickup, drop } = get();

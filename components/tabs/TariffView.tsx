@@ -32,7 +32,7 @@ export default function TariffView() {
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-black text-emerald-600">₹{v.ratePerKm}/km</span>
-                  <span className="text-[10px] text-slate-400 block">Outstation rate</span>
+                  <span className="text-[10px] text-slate-400 block">Outstation (₹{v.localRatePerKm}/km local)</span>
                 </div>
               </div>
 
@@ -57,7 +57,10 @@ export default function TariffView() {
           </h4>
           <ul className="space-y-1.5 text-[11px] text-slate-300 list-disc list-inside">
             <li>
-              <strong className="text-white">One Way:</strong> Minimum billable distance is {siteConfig.minKmOneWay} km.
+              <strong className="text-white">Local Rides (≤40 km):</strong> Billed at local per-km rate. No driver bata and no minimum km floor applied.
+            </li>
+            <li>
+              <strong className="text-white">One Way (&gt;40 km):</strong> Minimum billable distance is {siteConfig.minKmOneWay} km.
             </li>
             <li>
               <strong className="text-white">Round Trip:</strong> Minimum billable distance is {siteConfig.minKmRoundTrip} km.

@@ -1,0 +1,62 @@
+[
+  {
+    "category": "Cancellation & Rescheduling",
+    "question": "What is your cancellation policy?",
+    "answer": "You can cancel your booking for free up to 2 hours before the scheduled pickup time. Cancellations made within 2 hours of departure or after driver dispatch may incur a cancellation fee of ₹300."
+  },
+  {
+    "category": "Cancellation & Rescheduling",
+    "question": "Can I modify or reschedule my trip date and time?",
+    "answer": "Yes, trip rescheduling is free of charge if requested at least 2 hours before the pickup time, subject to vehicle availability."
+  },
+  {
+    "category": "Fares & Payments",
+    "question": "Are tolls, parking, and permits included in the fare?",
+    "answer": "No. Toll fees, parking charges, and inter-state entry permits are charged at actuals as per government receipts incurred during your trip."
+  },
+  {
+    "category": "Fares & Payments",
+    "question": "What is the Driver Bata and when does it apply?",
+    "answer": "Driver Bata is ₹400 per day for with-driver outstation trips. For short local trips of 40 km or under, no driver bata is charged."
+  },
+  {
+    "category": "Fares & Payments",
+    "question": "What payment methods do you accept?",
+    "answer": "We accept cash to the driver, UPI (Google Pay, PhonePe, Paytm), and direct bank transfers upon trip completion."
+  },
+  {
+    "category": "Fares & Payments",
+    "question": "What is the minimum billing distance?",
+    "answer": "For outstation one-way trips, the minimum billing floor is 130 km. For outstation round trips, the minimum billing floor is 250 km. Short-distance local trips (≤40 km) have no minimum km floor and are billed on actual distance at the local per-km rate."
+  },
+  {
+    "category": "Fares & Payments",
+    "question": "How does the fuel adjustment work?",
+    "answer": "Fuel adjustment is calculated automatically based on our baseline fuel price (₹100.75/L) and vehicle mileage, adding a transparent per-km adjustment directly to the fare."
+  },
+  {
+    "category": "Vehicles & Services",
+    "question": "What vehicles do you offer?",
+    "answer": "We offer 4-seater Sedans (Swift Dzire, Toyota Etios), 6-seater Executive SUVs (Maruti Ertiga, Kia Carens), and 7-seater Premium MUVs (Toyota Innova Crysta)."
+  },
+  {
+    "category": "Vehicles & Services",
+    "question": "Are all vehicles air-conditioned?",
+    "answer": "Yes, all SR Travels vehicles are fully air-conditioned and well-maintained for a comfortable ride."
+  },
+  {
+    "category": "Vehicles & Services",
+    "question": "Do you offer Self-Drive car rentals?",
+    "answer": "Yes, we offer self-drive rentals with 250 km/day included. Sedans are ₹1,800/day, SUVs are ₹2,800/day, and Innova Crysta is ₹3,200/day. Extra km is billed at standard vehicle rates."
+  },
+  {
+    "category": "Operations",
+    "question": "What are your operating hours?",
+    "answer": "SR Travels operates 24 hours a day, 7 days a week for outstation and local travel across Tamil Nadu, Bangalore, Tirupati, and neighbouring regions."
+  },
+  {
+    "category": "Operations",
+    "question": "How do I confirm my booking?",
+    "answer": "After reviewing your trip details on the app, tap 'Confirm on WhatsApp' to send your reservation directly to our 24/7 dispatch desk, or call us at +91 98948 46070."
+  }
+]
