@@ -116,7 +116,15 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
               <span className="truncate">{drop.label || drop.address}</span>
             </div>
             <div className="text-[10px] text-slate-300 mt-0.5 flex items-center gap-1.5">
-              <span>{distanceKm <= 40 ? "Local (≤40 km)" : tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
+              <span>
+                {distanceKm <= 40
+                  ? "Local (≤40 km)"
+                  : distanceKm < siteConfig.minKmOneWay && tripType !== "round-trip"
+                  ? "Mid-Range (40-130 km)"
+                  : tripType === "round-trip"
+                  ? "Round Trip"
+                  : "One Way"}
+              </span>
               <span>&bull;</span>
               <span>{driveMode === "with-driver" ? "With Driver" : "Self Drive"}</span>
             </div>

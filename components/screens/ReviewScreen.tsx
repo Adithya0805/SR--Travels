@@ -384,8 +384,12 @@ Please confirm my driver and booking details.`;
             </div>
           </div>
 
-          <div className="text-[10px] text-slate-400 italic pt-1">
-            * Tolls, parking and inter-state permit charges as per actuals.
+          <div className="space-y-0.5 pt-1">
+            {fare.notes.map((note, idx) => (
+              <div key={idx} className="text-[10px] text-slate-400 italic">
+                * {note}
+              </div>
+            ))}
           </div>
         </div>
       </div>

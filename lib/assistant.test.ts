@@ -59,7 +59,7 @@ describe("AI Trip Assistant API & Verification Tests", () => {
   });
 
   it("should return the REAL calculateFare() quote for 'what is the fare', never a guessed number", async () => {
-    // 50 km distance for Sedan with driver -> outstation 130 km floor @ ₹17/km + ₹400 bata = ₹2,610
+    // 50 km distance for Sedan with driver -> mid-range tier: actual 50km @ ₹17/km + ₹400 bata = ₹1,250
     const realFare = calculateFare({
       vehicle: siteConfig.vehicles[0],
       distanceKm: 50,
@@ -68,7 +68,7 @@ describe("AI Trip Assistant API & Verification Tests", () => {
       days: 1,
     });
 
-    expect(realFare.total).toBe(2610);
+    expect(realFare.total).toBe(1250);
 
     const req = new Request("http://localhost:3000/api/assistant", {
       method: "POST",
@@ -83,9 +83,9 @@ describe("AI Trip Assistant API & Verification Tests", () => {
     expect(res.status).toBe(200);
 
     const data = await res.json();
-    // Must contain the exact real fare total ₹2,610
-    expect(data.reply).toContain("₹2,610");
-    expect(data.reply).toContain("130 km billable");
+    // Must contain the exact real fare total ₹1,250
+    expect(data.reply).toContain("₹1,250");
+    expect(data.reply).toContain("50 km billable");
   });
 
   it("should accurately calculate and explain a 25km local trip fare", async () => {

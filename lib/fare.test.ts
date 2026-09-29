@@ -41,14 +41,15 @@ describe("calculateFare Unit Tests", () => {
       days: 1,
     });
 
+    expect(result.tier).toBe("local");
     expect(result.isShortDistance).toBe(true);
     expect(result.billableKm).toBe(25);
     // 25 km * (18 local + 3 fuel) = 25 * 21 = 525, NO driver bata (0), NO 130km floor
     expect(result.total).toBe(525);
     expect(result.fuelAdjustment).toBe(3.0);
     expect(result.fuelAdjustmentTotal).toBe(75); // 25 * 3
-    expect(result.notes.some((n) => n.includes("Short-distance local trip"))).toBe(true);
-    expect(result.notes.some((n) => n.includes("Minimum 130 km floor applied"))).toBe(false);
+    expect(result.notes).toContain("Local trip rate");
+    expect(result.notes.some((n) => n.includes("Minimum 130km floor applied"))).toBe(false);
   });
 
   it("should calculate short-distance local round trip (<=40km one-way = 40km total)", () => {
@@ -60,14 +61,15 @@ describe("calculateFare Unit Tests", () => {
       days: 1,
     });
 
+    expect(result.tier).toBe("local");
     expect(result.isShortDistance).toBe(true);
     expect(result.billableKm).toBe(40); // 20 * 2
     // 40 km * (18 local + 3 fuel) = 40 * 21 = 840, NO driver bata, NO 250km floor
     expect(result.total).toBe(840);
   });
 
-  it("should enforce minimum 130 km floor for One Way (With Driver) for trips > 40km", () => {
-    // 50 km distance > 40 km local tier, but < 130 km min floor
+  it("should calculate mid-range tier (40-130 km) with actual distance and standard per-km rate + driver bata (no 130km floor)", () => {
+    // 50 km distance > 40 km local tier, but < 130 km
     const result = calculateFare({
       vehicle: sedan,
       distanceKm: 50,
@@ -76,13 +78,166 @@ describe("calculateFare Unit Tests", () => {
       days: 1,
     });
 
+    expect(result.tier).toBe("mid-range");
     expect(result.isShortDistance).toBe(false);
-    expect(result.billableKm).toBe(130);
-    // 130 * (14 base + 3 fuel = 17) = 2210 + 400 bata = 2610
+    expect(result.billableKm).toBe(50); // actual distance, no floor!
+    // 50 * (14 base + 3 fuel = 17) = 850 + 400 bata = 1250
     const expectedRate = sedan.ratePerKm + 3.0; // 17
-    expect(result.total).toBe(130 * expectedRate + siteConfig.driverBataPerDay);
-    expect(result.notes).toContain("Minimum 130 km floor applied for one-way trip");
+    expect(result.total).toBe(50 * expectedRate + siteConfig.driverBataPerDay);
+    expect(result.notes).toContain("Standard per-km rate");
+    expect(result.notes.some((n) => n.includes("Minimum 130km floor applied"))).toBe(false);
     expect(result.notes).toContain("Tolls and permits extra as per actuals");
+  });
+
+  it("should smoothly transition without cliff at 39km, 44km, 45km and match outstation at 130km, 131km", () => {
+    const fare39 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 39,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    const fare44 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 44,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    const fare45 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 45,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    const fare130 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 130,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    const fare131 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 131,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+
+    // 39 km (Local): 39 * 21 = 819
+    expect(fare39.tier).toBe("local");
+    expect(fare39.billableKm).toBe(39);
+    expect(fare39.total).toBe(819);
+    expect(fare39.notes).toContain("Local trip rate");
+
+    // 44 km (Mid-range): 44 * 17 + 400 = 1148
+    expect(fare44.tier).toBe("mid-range");
+    expect(fare44.billableKm).toBe(44);
+    expect(fare44.total).toBe(1148);
+    expect(fare44.notes).toContain("Standard per-km rate");
+
+    // 45 km (Mid-range): 45 * 17 + 400 = 1165
+    expect(fare45.tier).toBe("mid-range");
+    expect(fare45.billableKm).toBe(45);
+    expect(fare45.total).toBe(1165);
+    expect(fare45.notes).toContain("Standard per-km rate");
+
+    // Strictly increasing without discontinuity
+    expect(fare39.total).toBeLessThan(fare44.total);
+    expect(fare44.total).toBeLessThan(fare45.total);
+
+    // No jump greater than what one extra km should cost (17 <= 17)
+    const oneKmCost = sedan.ratePerKm + 3.0; // 17
+    expect(fare45.total - fare44.total).toBe(oneKmCost);
+    expect(fare45.total - fare44.total).toBeLessThanOrEqual(oneKmCost);
+
+    // 130 km (Outstation): 130 * 17 + 400 = 2610 (exact match with existing outstation floor)
+    expect(fare130.tier).toBe("outstation");
+    expect(fare130.billableKm).toBe(130);
+    expect(fare130.total).toBe(2610);
+    // At 130km, billableKm === distanceKm, so floor note is NOT applied, notes show "Standard per-km rate"
+    expect(fare130.notes).toContain("Standard per-km rate");
+    expect(fare130.notes.some((n) => n.includes("floor applied"))).toBe(false);
+
+    // 131 km (Outstation): 131 * 17 + 400 = 2627
+    expect(fare131.tier).toBe("outstation");
+    expect(fare131.billableKm).toBe(131);
+    expect(fare131.total).toBe(2627);
+    expect(fare131.total - fare130.total).toBe(oneKmCost);
+  });
+
+  it("should bill one-way trip at 44.4km with billableKm = 44.4 (NOT 130), and verify 39km, 44.4km, 129km, 130km, 131km", () => {
+    // 1. One-way trip at 44.4km (Ambur -> Vellore)
+    const result44_4 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 44.4,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+
+    expect(result44_4.billableKm).toBe(44.4);
+    expect(result44_4.billableKm).not.toBe(130);
+    expect(result44_4.tier).toBe("mid-range");
+    // 44.4 * 17 + 400 = 754.8 + 400 = 1154.8
+    expect(result44_4.total).toBe(1154.8);
+    expect(result44_4.notes).toContain("Standard per-km rate");
+    expect(result44_4.notes.some((n) => n.includes("130km floor applied"))).toBe(false);
+
+    // 2. 39km (Local tier)
+    const result39 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 39,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    expect(result39.billableKm).toBe(39);
+    expect(result39.tier).toBe("local");
+    expect(result39.total).toBe(819);
+
+    // 3. 129km (Mid-range tier, just under 130km floor)
+    const result129 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 129,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    expect(result129.billableKm).toBe(129);
+    expect(result129.billableKm).not.toBe(130);
+    expect(result129.tier).toBe("mid-range");
+    // 129 * 17 + 400 = 2193 + 400 = 2593
+    expect(result129.total).toBe(2593);
+    expect(result129.notes).toContain("Standard per-km rate");
+
+    // 4. 130km (Outstation boundary)
+    const result130 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 130,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    expect(result130.billableKm).toBe(130);
+    expect(result130.tier).toBe("outstation");
+    expect(result130.total).toBe(2610);
+    expect(result130.notes).toContain("Standard per-km rate");
+
+    // 5. 131km (Outstation above 130km)
+    const result131 = calculateFare({
+      vehicle: sedan,
+      distanceKm: 131,
+      tripType: "one-way",
+      driveMode: "with-driver",
+      days: 1,
+    });
+    expect(result131.billableKm).toBe(131);
+    expect(result131.tier).toBe("outstation");
+    expect(result131.total).toBe(2627);
+    expect(result131.total - result130.total).toBe(17);
   });
 
   it("should calculate exact distance fare when exceeding minimum floor for One Way (With Driver)", () => {
@@ -95,11 +250,13 @@ describe("calculateFare Unit Tests", () => {
       days: 1,
     });
 
+    expect(result.tier).toBe("outstation");
     expect(result.billableKm).toBe(200);
     // 200 * (14 base + 3 fuel = 17) = 3400 + 400 bata = 3800
     const expectedRate = sedan.ratePerKm + 3.0; // 17
     expect(result.total).toBe(200 * expectedRate + siteConfig.driverBataPerDay);
-    expect(result.notes).not.toContain("Minimum 130 km floor applied for one-way trip");
+    expect(result.notes).toContain("Standard per-km rate");
+    expect(result.notes.some((n) => n.includes("floor applied"))).toBe(false);
   });
 
   it("should enforce minimum 250 km floor for Round Trip (With Driver) for trips > 40km", () => {
