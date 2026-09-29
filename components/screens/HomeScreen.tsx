@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useBookingStore, LocationPoint, SavedBookingRecord } from "@/store/useBookingStore";
+import { useBookingStore, LocationPoint, SavedBookingRecord, getTodayString } from "@/store/useBookingStore";
 import { siteConfig } from "@/config/siteConfig";
 import { searchPlaces, reverseGeocode, MapLocation } from "@/lib/maps";
 import { prefetchMapChunks } from "@/lib/prefetchMap";
@@ -299,7 +299,7 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
     }
   };
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getTodayString();
 
   const suggestedMinDays =
     tripType === "round-trip" && route

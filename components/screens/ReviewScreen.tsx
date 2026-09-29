@@ -141,22 +141,31 @@ export default function ReviewScreen({ onOpenRoutePreview }: ReviewScreenProps) 
       return;
     }
 
+    let bookingCode = "";
     try {
       // 1. Save to Supabase API & LocalStorage
-      const bookingCode = await saveBookingToSupabase(
+      bookingCode = await saveBookingToSupabase(
         cleanName,
         cleanPhone,
         honeypot,
         formStartTime
       );
+    } catch (err: any) {
+      console.warn("Server logging error, continuing with WhatsApp dispatch:", err);
+      bookingCode = `SRT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    }
 
-      // 2. Format prefilled WhatsApp message
-      const pickupText = pickup?.label || pickup?.address || "Pickup";
-      const dropText = drop?.label || drop?.address || "Drop";
-      const tripTypeText = tripType === "round-trip" ? "Round Trip" : "One Way";
-      const driveModeText = driveMode === "with-driver" ? "With Driver" : "Self Drive";
+    if (!bookingCode) {
+      bookingCode = `SRT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    }
 
-      const message = `*SR Travels Booking Request*
+    // 2. Format prefilled WhatsApp message
+    const pickupText = pickup?.label || pickup?.address || "Pickup";
+    const dropText = drop?.label || drop?.address || "Drop";
+    const tripTypeText = tripType === "round-trip" ? "Round Trip" : "One Way";
+    const driveModeText = driveMode === "with-driver" ? "With Driver" : "Self Drive";
+
+    const message = `*SR Travels Booking Request*
 ━━━━━━━━━━━━━━━━━━━━
 *Booking ID:* ${bookingCode}
 *Customer:* ${cleanName}
@@ -178,11 +187,15 @@ _${fare.notes.join(", ")}_
 ━━━━━━━━━━━━━━━━━━━━
 Please confirm my driver and booking details.`;
 
-      const whatsappUrl = `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-    } catch (err) {
-      console.error("Booking error:", err);
-      setErrorMessage("Something went wrong while logging your booking. You can still confirm via WhatsApp or Call.");
+    const whatsappUrl = `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(message)}`;
+
+    try {
+      const win = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+      if (!win || win.closed || typeof win.closed === "undefined") {
+        window.location.href = whatsappUrl;
+      }
+    } catch {
+      window.location.href = whatsappUrl;
     }
   };
 

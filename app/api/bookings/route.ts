@@ -117,10 +117,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Minimum time on form check (reject if submitted in under 3 seconds)
+    // 4. Minimum time on form check (reject if submitted in under 1 second to catch instant bots)
     if (form_start_time) {
       const elapsedMs = Date.now() - Number(form_start_time);
-      if (elapsedMs < 3000) {
+      if (elapsedMs < 1000) {
         console.warn(
           `[Security Alert] Fast submission (${elapsedMs}ms) by IP: ${clientIp}`
         );
@@ -177,19 +177,24 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate travel_datetime is not in the past
-    if (travel_datetime) {
-      const travelDate = new Date(travel_datetime);
-      if (isNaN(travelDate.getTime())) {
+    // Split travel_datetime into date and time
+    let pickupDate = null;
+    let pickupTime = null;
+    if (travel_datetime && typeof travel_datetime === "string") {
+      const parts = travel_datetime.split(" ");
+      pickupDate = parts[0] || null;
+      pickupTime = parts[1] || null;
+    }
+
+    // Validate travel date: ensure pickup date is not before today (in Indian Standard Time)
+    if (pickupDate) {
+      const now = new Date();
+      const istTime = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+      const todayStr = istTime.toISOString().split("T")[0];
+
+      if (pickupDate < todayStr) {
         return NextResponse.json(
-          { error: "Invalid travel date format." },
-          { status: 400 }
-        );
-      }
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      if (travelDate < oneHourAgo) {
-        return NextResponse.json(
-          { error: "Travel date and time cannot be in the past." },
+          { error: "Pickup date cannot be in the past." },
           { status: 400 }
         );
       }
@@ -212,15 +217,6 @@ export async function POST(request: Request) {
       muv: "MUV (Innova Crysta)",
     };
     const vehicleName = vehicleNames[vehicle_id] || vehicle_id || "Standard Vehicle";
-
-    // Split travel_datetime into date and time
-    let pickupDate = null;
-    let pickupTime = null;
-    if (travel_datetime && typeof travel_datetime === "string") {
-      const parts = travel_datetime.split(" ");
-      pickupDate = parts[0] || null;
-      pickupTime = parts[1] || null;
-    }
 
     const bookingId = crypto.randomUUID();
 
