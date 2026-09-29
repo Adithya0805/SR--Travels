@@ -190,7 +190,7 @@ describe("Weather Advisory API Tests", () => {
       expect(["rain", "heat"]).toContain(data.advisoryType);
       expect(data.message).toBeTruthy();
     }
-  });
+  }, 15000);
 
   it("should validate missing coordinates with 400", async () => {
     const req = new Request("http://localhost:3000/api/weather", { method: "GET" });

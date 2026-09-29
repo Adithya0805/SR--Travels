@@ -5,6 +5,7 @@ import { useBookingStore, LocationPoint, SavedBookingRecord } from "@/store/useB
 import { siteConfig } from "@/config/siteConfig";
 import { searchPlaces, reverseGeocode, MapLocation } from "@/lib/maps";
 import { prefetchMapChunks } from "@/lib/prefetchMap";
+import { suggestMinimumDays } from "@/lib/fare";
 
 interface HomeScreenProps {
   onOpenMapPicker: (target: "pickup" | "drop") => void;
@@ -20,6 +21,7 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
     driveMode,
     days,
     passengers,
+    route,
     highlightedField,
     isRouteLoading,
     routeError,
@@ -298,6 +300,14 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
   };
 
   const todayStr = new Date().toISOString().split("T")[0];
+
+  const suggestedMinDays =
+    tripType === "round-trip" && route
+      ? suggestMinimumDays({
+          oneWayDistanceKm: route.distanceKm,
+          oneWayDurationMin: route.durationMin,
+        })
+      : 1;
 
   return (
     <div className="w-full max-w-lg mx-auto pb-20 space-y-4">
@@ -631,6 +641,11 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
                   +
                 </button>
               </div>
+              {tripType === "round-trip" && suggestedMinDays > 1 && days < suggestedMinDays && (
+                <p className="text-[10px] text-amber-600 font-bold mt-1 leading-tight">
+                  Minimum {suggestedMinDays} days suggested for this distance
+                </p>
+              )}
             </div>
 
             <div>

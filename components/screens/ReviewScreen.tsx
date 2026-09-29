@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { useBookingStore } from "@/store/useBookingStore";
 import { siteConfig } from "@/config/siteConfig";
-import { calculateFare } from "@/lib/fare";
+import { calculateFare, formatCurrency } from "@/lib/fare";
 import { AnimatedFare } from "@/components/AnimatedFare";
 import { useReducedMotion, getCardVariants } from "@/lib/motion";
 
@@ -173,7 +173,7 @@ export default function ReviewScreen({ onOpenRoutePreview }: ReviewScreenProps) 
 
 *FARE ESTIMATE*
 *Est. Distance:* ${distanceKm} km
-*Total Fare:* ₹${fare.total.toLocaleString()}
+*Total Fare:* ${formatCurrency(fare.total)}
 _${fare.notes.join(", ")}_
 ━━━━━━━━━━━━━━━━━━━━
 Please confirm my driver and booking details.`;

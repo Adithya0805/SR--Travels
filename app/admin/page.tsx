@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { siteConfig } from "@/config/siteConfig";
-import { calculateFare } from "@/lib/fare";
+import { calculateFare, formatCurrency } from "@/lib/fare";
 
 export interface BookingRow {
   id: string;
@@ -137,14 +137,14 @@ function getFareBreakdown(booking: BookingRow) {
       seats: vehicle.seats,
       billableKm,
       baseFare: Math.round(baseFare),
-      driverBata,
+      driverBata: Math.round(driverBata),
       fuelAdjustment: Math.round(result.fuelAdjustmentTotal),
-      total: booking.fare_total ?? booking.total_fare ?? result.total,
+      total: Math.round(booking.fare_total ?? booking.total_fare ?? result.total),
       notes: result.notes,
       breakdownLines: result.breakdown,
     };
   } catch {
-    const total = booking.fare_total ?? booking.total_fare ?? 0;
+    const total = Math.round(booking.fare_total ?? booking.total_fare ?? 0);
     return {
       vehicleName: booking.vehicle_name || vehicle.name,
       seats: vehicle.seats,
@@ -931,7 +931,7 @@ export default function AdminPage() {
                         Total Fare
                       </span>
                       <span className="text-base sm:text-lg font-black text-emerald-400">
-                        ₹{fareInfo.total.toLocaleString("en-IN")}
+                        {formatCurrency(fareInfo.total)}
                       </span>
                     </div>
                   </div>
@@ -1195,7 +1195,7 @@ export default function AdminPage() {
                           <div className="flex items-center justify-between text-slate-300">
                             <span>Base Fare ({fareInfo.billableKm} km):</span>
                             <span className="font-semibold text-white">
-                              ₹{fareInfo.baseFare.toLocaleString("en-IN")}
+                              {formatCurrency(fareInfo.baseFare)}
                             </span>
                           </div>
 
@@ -1203,7 +1203,7 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between text-slate-300">
                               <span>Driver Bata ({booking.days || 1} day):</span>
                               <span className="font-semibold text-white">
-                                ₹{fareInfo.driverBata.toLocaleString("en-IN")}
+                                {formatCurrency(fareInfo.driverBata)}
                               </span>
                             </div>
                           )}
@@ -1212,7 +1212,7 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between text-slate-300">
                               <span>Fuel Adjustment:</span>
                               <span className="font-semibold text-amber-300">
-                                +₹{fareInfo.fuelAdjustment.toLocaleString("en-IN")}
+                                +{formatCurrency(fareInfo.fuelAdjustment)}
                               </span>
                             </div>
                           )}
@@ -1220,7 +1220,7 @@ export default function AdminPage() {
                           <div className="pt-2 border-t border-slate-800 flex items-center justify-between font-bold text-sm">
                             <span className="text-white">Total Amount:</span>
                             <span className="text-emerald-400 font-black text-base">
-                              ₹{fareInfo.total.toLocaleString("en-IN")}
+                              {formatCurrency(fareInfo.total)}
                             </span>
                           </div>
                         </div>

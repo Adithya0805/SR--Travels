@@ -210,7 +210,11 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
 
                   <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
                     {driveMode === "with-driver"
-                      ? `₹${v.ratePerKm}/km &bull; ₹${siteConfig.driverBataPerDay} bata/day &bull; Fuel adj +₹${v.fare.fuelAdjustment}/km`
+                      ? `${
+                          tripType === "round-trip"
+                            ? `₹${v.roundTripRatePerKm ?? v.ratePerKm}/km (round trip)`
+                            : `₹${v.ratePerKm}/km`
+                        } &bull; ₹${siteConfig.driverBataPerDay} bata/day &bull; Fuel adj +₹${v.fare.fuelAdjustment}/km`
                       : `₹${v.ratePerDay}/day &bull; ${v.kmCapPerDay} km/day included`}
                   </p>
                 </div>

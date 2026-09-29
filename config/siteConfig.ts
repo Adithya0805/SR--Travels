@@ -3,6 +3,8 @@ export interface Vehicle {
   name: string;
   seats: number;
   ratePerKm: number;
+  /** Discounted rate per km for round trips (~12% lower than ratePerKm). Placeholder: confirm with business owner */
+  roundTripRatePerKm: number;
   /** Fuel efficiency in km/L (sedan 18, suv 12, muv 11) */
   mileageKmpl: number;
   ratePerDay: number;
@@ -101,6 +103,7 @@ export const siteConfig: SiteConfig = {
       name: "Sedan (Swift Dzire / Etios)",
       seats: 4,
       ratePerKm: 14,
+      roundTripRatePerKm: 12.5, // Placeholder: ~12% lower than one-way rate (needs real business rate confirmation)
       mileageKmpl: 18,
       ratePerDay: 1800,
       kmCapPerDay: 250,
@@ -111,6 +114,7 @@ export const siteConfig: SiteConfig = {
       name: "Executive SUV (Ertiga / Carens)",
       seats: 6,
       ratePerKm: 20,
+      roundTripRatePerKm: 17.5, // Placeholder: ~12.5% lower than one-way rate (needs real business rate confirmation)
       mileageKmpl: 12,
       ratePerDay: 2800,
       kmCapPerDay: 250,
@@ -121,6 +125,7 @@ export const siteConfig: SiteConfig = {
       name: "Premium MUV (Innova Crysta)",
       seats: 7,
       ratePerKm: 21,
+      roundTripRatePerKm: 18.5, // Placeholder: ~12% lower than one-way rate (needs real business rate confirmation)
       mileageKmpl: 11,
       ratePerDay: 3200,
       kmCapPerDay: 250,

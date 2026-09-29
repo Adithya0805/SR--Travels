@@ -29,6 +29,35 @@ export interface FuelAdjustmentOptions {
   baselineFuelPrice?: number;
 }
 
+export interface SuggestMinimumDaysOptions {
+  oneWayDistanceKm: number;
+  oneWayDurationMin: number;
+}
+
+/**
+ * Formats a currency amount by rounding to the nearest integer rupee
+ * and applying Indian numbering format (e.g. ₹12,972).
+ */
+export function formatCurrency(amount: number, includeSymbol = true): string {
+  const rounded = Math.round(amount);
+  return `${includeSymbol ? "₹" : ""}${rounded.toLocaleString("en-IN")}`;
+}
+
+/**
+ * Realistic bata days suggestion:
+ * If one-way drive is over 6 hours (> 360 min) OR over 250 km,
+ * suggest minimum 2 days for a round trip to avoid unsafe same-day driver fatigue.
+ */
+export function suggestMinimumDays({
+  oneWayDistanceKm,
+  oneWayDurationMin,
+}: SuggestMinimumDaysOptions): number {
+  if (oneWayDurationMin > 360 || oneWayDistanceKm > 250) {
+    return 2;
+  }
+  return 1;
+}
+
 /**
  * Calculates fuel price adjustment per km using config values ONLY (no fetch, no cache, no API).
  * fuelCostPerKm = baselineFuelPrice / mileageKmpl
@@ -48,10 +77,11 @@ export function calculateFuelAdjustment({
 
 /**
  * Calculates fare strictly based on real distance (no minimum distance floor, no separate local rate):
- * - With Driver, One Way: fare = distanceKm * (ratePerKm + fuelAdjustment) + driverBataPerDay * days
- * - With Driver, Round Trip: fare = (distanceKm * 2) * (ratePerKm + fuelAdjustment) + driverBataPerDay * days
+ * - With Driver, One Way: uses ratePerKm
+ * - With Driver, Round Trip: uses roundTripRatePerKm (distinct discounted rate)
+ * - Intermediate breakdown lines (base fare, fuel adjustment, driver bata) are each Math.round()ed
+ *   before summing, guaranteeing that breakdown lines and total add up exactly with zero floating-point artifacts.
  * - Self Drive: ratePerDay * days + max(0, totalKm - kmCapPerDay * days) * extraKmRate
- * billableKm is always simply the real distance travelled.
  */
 export function calculateFare({
   vehicle,
@@ -76,27 +106,35 @@ export function calculateFare({
   });
 
   if (driveMode === "with-driver") {
-    const baseRate = vehicle.ratePerKm;
+    // Round trip uses distinct roundTripRatePerKm; One way uses standard ratePerKm
+    const baseRate = isRoundTrip
+      ? (vehicle.roundTripRatePerKm ?? vehicle.ratePerKm)
+      : vehicle.ratePerKm;
     const effectiveRatePerKm = baseRate + fuelAdjustment;
-    const driverBataTotal = siteConfig.driverBataPerDay * numDays;
 
     // Pure real distance: One Way = distanceKm, Round Trip = distanceKm * 2
     const billableKm = isRoundTrip ? roundedDistance * 2 : roundedDistance;
-    const distanceFare = billableKm * effectiveRatePerKm;
-    const baseFare = billableKm * baseRate;
-    const fuelAdjustmentTotal = billableKm * fuelAdjustment;
-    const total = distanceFare + driverBataTotal;
+
+    // Round each intermediate component to nearest rupee before summing
+    const baseFare = Math.round(billableKm * baseRate);
+    const fuelAdjustmentTotal = Math.round(billableKm * fuelAdjustment);
+    const driverBataTotal = Math.round(siteConfig.driverBataPerDay * numDays);
+    const total = baseFare + fuelAdjustmentTotal + driverBataTotal;
+
+    const rateLabel = isRoundTrip
+      ? `₹${baseRate}/km (round trip rate)`
+      : `₹${baseRate}/km`;
 
     breakdown.push(
-      `${billableKm} km @ ₹${baseRate}/km = ₹${baseFare}`
+      `${billableKm} km @ ${rateLabel} = ₹${baseFare.toLocaleString("en-IN")}`
     );
-    if (fuelAdjustment > 0) {
+    if (fuelAdjustmentTotal > 0) {
       breakdown.push(
-        `Fuel adjustment = +₹${fuelAdjustmentTotal}`
+        `Fuel adjustment = +₹${fuelAdjustmentTotal.toLocaleString("en-IN")}`
       );
     }
     breakdown.push(
-      `Driver Bata (${numDays} day${numDays > 1 ? "s" : ""}) = ₹${driverBataTotal}`
+      `Driver Bata (${numDays} day${numDays > 1 ? "s" : ""}) = ₹${driverBataTotal.toLocaleString("en-IN")}`
     );
 
     notes.push(TOLLS_NOTE);
@@ -112,22 +150,22 @@ export function calculateFare({
       effectiveRatePerKm,
     };
   } else {
-    // Self Drive
+    // Self Drive: ratePerDay * days + max(0, totalKm - kmCapPerDay * days) * extraKmRate
     const effectiveDistance = roundedDistance * (isRoundTrip ? 2 : 1);
     const kmCapTotal = vehicle.kmCapPerDay * numDays;
     const extraKm = Math.max(0, effectiveDistance - kmCapTotal);
 
-    const rentalFare = vehicle.ratePerDay * numDays;
-    const extraKmFare = extraKm * vehicle.extraKmRate;
+    const rentalFare = Math.round(vehicle.ratePerDay * numDays);
+    const extraKmFare = Math.round(extraKm * vehicle.extraKmRate);
     const total = rentalFare + extraKmFare;
 
     breakdown.push(
-      `Daily Rental (${numDays} day${numDays > 1 ? "s" : ""} @ ₹${vehicle.ratePerDay}/day) = ₹${rentalFare}`
+      `Daily Rental (${numDays} day${numDays > 1 ? "s" : ""} @ ₹${vehicle.ratePerDay}/day) = ₹${rentalFare.toLocaleString("en-IN")}`
     );
 
     if (extraKm > 0) {
       breakdown.push(
-        `Extra Distance (${extraKm} km @ ₹${vehicle.extraKmRate}/km) = ₹${extraKmFare}`
+        `Extra Distance (${extraKm} km @ ₹${vehicle.extraKmRate}/km) = ₹${extraKmFare.toLocaleString("en-IN")}`
       );
       notes.push(
         `Exceeded ${kmCapTotal} km cap by ${extraKm} km (${numDays} day(s) @ ${vehicle.kmCapPerDay} km/day)`

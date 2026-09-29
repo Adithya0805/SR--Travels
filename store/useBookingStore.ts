@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { getRoute } from "@/lib/maps";
 import { siteConfig } from "@/config/siteConfig";
-import { calculateFare } from "@/lib/fare";
+import { calculateFare, suggestMinimumDays } from "@/lib/fare";
 
 export interface LocationPoint {
   label: string;
@@ -129,7 +129,20 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
 
   setDate: (date) => set({ date }),
   setTime: (time) => set({ time }),
-  setTripType: (tripType) => set({ tripType }),
+  setTripType: (tripType) => {
+    const { route, days } = get();
+    if (tripType === "round-trip" && route) {
+      const minDays = suggestMinimumDays({
+        oneWayDistanceKm: route.distanceKm,
+        oneWayDurationMin: route.durationMin,
+      });
+      if (minDays > days) {
+        set({ tripType, days: minDays });
+        return;
+      }
+    }
+    set({ tripType });
+  },
   setDriveMode: (driveMode) => set({ driveMode }),
   setDays: (days) => set({ days: Math.max(1, days) }),
   setPassengers: (passengers) => set({ passengers: Math.max(1, passengers) }),
@@ -170,8 +183,21 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
         isApproximate: routeResult.isApproximate ?? false,
       };
 
+      const { tripType, days } = get();
+      let updatedDays = days;
+      if (tripType === "round-trip") {
+        const minDays = suggestMinimumDays({
+          oneWayDistanceKm: routeData.distanceKm,
+          oneWayDurationMin: routeData.durationMin,
+        });
+        if (minDays > days) {
+          updatedDays = minDays;
+        }
+      }
+
       set({
         route: routeData,
+        days: updatedDays,
         isRouteLoading: false,
         routeError: null,
       });
