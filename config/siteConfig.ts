@@ -3,8 +3,6 @@ export interface Vehicle {
   name: string;
   seats: number;
   ratePerKm: number;
-  /** Placeholder per-vehicle local rate for trips 40km or under */
-  localRatePerKm: number;
   /** Fuel efficiency in km/L (sedan 18, suv 12, muv 11) */
   mileageKmpl: number;
   ratePerDay: number;
@@ -49,8 +47,6 @@ export interface SiteConfig {
   baselineFuelPrice: number;
   /** Sensitivity factor for fuel adjustments */
   fuelSensitivity: number;
-  minKmOneWay: number;
-  minKmRoundTrip: number;
   driverBataPerDay: number;
   cancellationPolicy: string;
 }
@@ -105,7 +101,6 @@ export const siteConfig: SiteConfig = {
       name: "Sedan (Swift Dzire / Etios)",
       seats: 4,
       ratePerKm: 14,
-      localRatePerKm: 18,
       mileageKmpl: 18,
       ratePerDay: 1800,
       kmCapPerDay: 250,
@@ -116,7 +111,6 @@ export const siteConfig: SiteConfig = {
       name: "Executive SUV (Ertiga / Carens)",
       seats: 6,
       ratePerKm: 20,
-      localRatePerKm: 24,
       mileageKmpl: 12,
       ratePerDay: 2800,
       kmCapPerDay: 250,
@@ -127,7 +121,6 @@ export const siteConfig: SiteConfig = {
       name: "Premium MUV (Innova Crysta)",
       seats: 7,
       ratePerKm: 21,
-      localRatePerKm: 26,
       mileageKmpl: 11,
       ratePerDay: 3200,
       kmCapPerDay: 250,
@@ -137,8 +130,6 @@ export const siteConfig: SiteConfig = {
   // update manually when fuel price changes meaningfully
   baselineFuelPrice: 100.75,
   fuelSensitivity: 0.5,
-  minKmOneWay: 130,
-  minKmRoundTrip: 250,
   driverBataPerDay: 400,
   cancellationPolicy: "Free cancellation up to 2 hours before pickup. Cancellations within 2 hours or after driver dispatch incur a ₹300 fee.",
 };

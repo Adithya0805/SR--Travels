@@ -47,10 +47,11 @@ export function calculateFuelAdjustment({
 }
 
 /**
- * Calculates fare with three tiers for With Driver trips:
- * 1. LOCAL (0-40km): flat vehicle.localRatePerKm, no driverBata, no min-km floor.
- * 2. MID-RANGE (40-130km): linear taper, billableKm = actual distanceKm (no floor), standard ratePerKm + driverBata.
- * 3. OUTSTATION (130km+): existing logic, billableKm = max(distanceKm, minKm). Floor note only if billableKm > distanceKm.
+ * Calculates fare strictly based on real distance (no minimum distance floor, no separate local rate):
+ * - With Driver, One Way: fare = distanceKm * (ratePerKm + fuelAdjustment) + driverBataPerDay * days
+ * - With Driver, Round Trip: fare = (distanceKm * 2) * (ratePerKm + fuelAdjustment) + driverBataPerDay * days
+ * - Self Drive: ratePerDay * days + max(0, totalKm - kmCapPerDay * days) * extraKmRate
+ * billableKm is always simply the real distance travelled.
  */
 export function calculateFare({
   vehicle,
@@ -75,173 +76,41 @@ export function calculateFare({
   });
 
   if (driveMode === "with-driver") {
-    // 1. LOCAL (0-40km)
-    // Flat vehicle.localRatePerKm, no driverBata, no min-km floor, fuel adjustment still applied
-    if (roundedDistance <= 40) {
-      const billableKm = isRoundTrip ? roundedDistance * 2 : roundedDistance;
-      const baseRate = vehicle.localRatePerKm;
-      const effectiveRate = baseRate + fuelAdjustment;
-      const distanceFare = billableKm * effectiveRate;
-      const baseFare = billableKm * baseRate;
-      const fuelAdjustmentTotal = billableKm * fuelAdjustment;
-      const total = distanceFare;
-
-      breakdown.push(
-        `${billableKm} km @ ₹${baseRate}/km (Local rate) = ₹${baseFare}`
-      );
-      if (fuelAdjustment > 0) {
-        breakdown.push(
-          `Fuel adjustment = +₹${fuelAdjustmentTotal}`
-        );
-      }
-      notes.push("Local trip rate");
-      notes.push(TOLLS_NOTE);
-
-      return {
-        billableKm,
-        breakdown,
-        total,
-        notes,
-        fuelAdjustment,
-        fuelAdjustmentTotal,
-        baseRatePerKm: baseRate,
-        effectiveRatePerKm: effectiveRate,
-        isShortDistance: true,
-        tier: "local",
-      };
-    }
-
-    // Above 40km: With Driver (One Way or Round Trip)
     const baseRate = vehicle.ratePerKm;
     const effectiveRatePerKm = baseRate + fuelAdjustment;
     const driverBataTotal = siteConfig.driverBataPerDay * numDays;
 
-    if (!isRoundTrip) {
-      // 2. MID-RANGE (40-130km): Linear taper
-      // billableKm = distanceKm (actual distance, NO 130km floor).
-      // fare = distanceKm * ratePerKm + driverBataPerDay * days.
-      if (roundedDistance < siteConfig.minKmOneWay) {
-        const billableKm = roundedDistance;
-        const distanceFare = billableKm * effectiveRatePerKm;
-        const baseFare = billableKm * baseRate;
-        const fuelAdjustmentTotal = billableKm * fuelAdjustment;
-        const total = distanceFare + driverBataTotal;
+    // Pure real distance: One Way = distanceKm, Round Trip = distanceKm * 2
+    const billableKm = isRoundTrip ? roundedDistance * 2 : roundedDistance;
+    const distanceFare = billableKm * effectiveRatePerKm;
+    const baseFare = billableKm * baseRate;
+    const fuelAdjustmentTotal = billableKm * fuelAdjustment;
+    const total = distanceFare + driverBataTotal;
 
-        breakdown.push(
-          `${billableKm} km @ ₹${baseRate}/km = ₹${baseFare}`
-        );
-        if (fuelAdjustment > 0) {
-          breakdown.push(
-            `Fuel adjustment = +₹${fuelAdjustmentTotal}`
-          );
-        }
-        breakdown.push(
-          `Driver Bata (${numDays} day${numDays > 1 ? "s" : ""} @ ₹${siteConfig.driverBataPerDay}/day) = ₹${driverBataTotal}`
-        );
-
-        notes.push("Standard per-km rate");
-        notes.push(TOLLS_NOTE);
-
-        return {
-          billableKm,
-          breakdown,
-          total,
-          notes,
-          fuelAdjustment,
-          fuelAdjustmentTotal,
-          baseRatePerKm: baseRate,
-          effectiveRatePerKm,
-          isShortDistance: false,
-          tier: "mid-range",
-        };
-      }
-
-      // 3. OUTSTATION (130km+): One Way
-      const minKm = siteConfig.minKmOneWay;
-      const billableKm = Math.max(roundedDistance, minKm);
-      const distanceFare = billableKm * effectiveRatePerKm;
-      const baseFare = billableKm * baseRate;
-      const fuelAdjustmentTotal = billableKm * fuelAdjustment;
-      const total = distanceFare + driverBataTotal;
-
+    breakdown.push(
+      `${billableKm} km @ ₹${baseRate}/km = ₹${baseFare}`
+    );
+    if (fuelAdjustment > 0) {
       breakdown.push(
-        `${billableKm} km @ ₹${baseRate}/km = ₹${baseFare}`
+        `Fuel adjustment = +₹${fuelAdjustmentTotal}`
       );
-      if (fuelAdjustment > 0) {
-        breakdown.push(
-          `Fuel adjustment = +₹${fuelAdjustmentTotal}`
-        );
-      }
-      breakdown.push(
-        `Driver Bata (${numDays} day${numDays > 1 ? "s" : ""} @ ₹${siteConfig.driverBataPerDay}/day) = ₹${driverBataTotal}`
-      );
-
-      // Only show floor note when billableKm > distanceKm; otherwise "Standard per-km rate"
-      if (billableKm > roundedDistance) {
-        notes.push("Minimum 130km floor applied");
-      } else {
-        notes.push("Standard per-km rate");
-      }
-      notes.push(TOLLS_NOTE);
-
-      return {
-        billableKm,
-        breakdown,
-        total,
-        notes,
-        fuelAdjustment,
-        fuelAdjustmentTotal,
-        baseRatePerKm: baseRate,
-        effectiveRatePerKm,
-        isShortDistance: false,
-        tier: "outstation",
-      };
-    } else {
-      // With Driver - Round Trip (> 40km)
-      const roundTripDistance = roundedDistance * 2;
-      const minKm = siteConfig.minKmRoundTrip;
-      const kmCapTotal = numDays * vehicle.kmCapPerDay;
-
-      const billableKm = Math.max(roundTripDistance, minKm, kmCapTotal);
-      const distanceFare = billableKm * effectiveRatePerKm;
-      const baseFare = billableKm * baseRate;
-      const fuelAdjustmentTotal = billableKm * fuelAdjustment;
-      const total = distanceFare + driverBataTotal;
-
-      breakdown.push(
-        `${billableKm} km @ ₹${baseRate}/km = ₹${baseFare}`
-      );
-      if (fuelAdjustment > 0) {
-        breakdown.push(
-          `Fuel adjustment = +₹${fuelAdjustmentTotal}`
-        );
-      }
-      breakdown.push(
-        `Driver Bata (${numDays} day${numDays > 1 ? "s" : ""} @ ₹${siteConfig.driverBataPerDay}/day) = ₹${driverBataTotal}`
-      );
-
-      if (billableKm > roundTripDistance) {
-        notes.push(
-          `Minimum ${billableKm} km floor applied for round-trip (${numDays} day(s))`
-        );
-      } else {
-        notes.push("Standard per-km rate");
-      }
-      notes.push(TOLLS_NOTE);
-
-      return {
-        billableKm,
-        breakdown,
-        total,
-        notes,
-        fuelAdjustment,
-        fuelAdjustmentTotal,
-        baseRatePerKm: baseRate,
-        effectiveRatePerKm,
-        isShortDistance: false,
-        tier: "outstation",
-      };
     }
+    breakdown.push(
+      `Driver Bata (${numDays} day${numDays > 1 ? "s" : ""}) = ₹${driverBataTotal}`
+    );
+
+    notes.push(TOLLS_NOTE);
+
+    return {
+      billableKm,
+      breakdown,
+      total,
+      notes,
+      fuelAdjustment,
+      fuelAdjustmentTotal,
+      baseRatePerKm: baseRate,
+      effectiveRatePerKm,
+    };
   } else {
     // Self Drive
     const effectiveDistance = roundedDistance * (isRoundTrip ? 2 : 1);
@@ -276,8 +145,6 @@ export function calculateFare({
       fuelAdjustmentTotal: 0,
       baseRatePerKm: vehicle.extraKmRate,
       effectiveRatePerKm: vehicle.extraKmRate,
-      isShortDistance: false,
-      tier: "outstation",
     };
   }
 }

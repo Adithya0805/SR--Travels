@@ -159,11 +159,10 @@ CURRENT BOOKING STATE:
 
 OFFICIAL POLICIES & RATES:
 - Cancellation: ${siteConfig.cancellationPolicy}
-- Driver Bata: ₹${siteConfig.driverBataPerDay}/day for outstation with driver.
+- Driver Bata: ₹${siteConfig.driverBataPerDay}/day for with-driver trips.
 - Baseline Fuel Price: ₹${siteConfig.baselineFuelPrice}/L.
-- Outstation minimum floors: One-way 130 km, Round-trip 250 km.
-- Local trips (40 km or under): local per-km rate, no driver bata, no minimum km floor.
-- Vehicles: Sedan (4 seats, ₹14/km outstation, ₹18/km local), SUV (6 seats, ₹20/km outstation, ₹24/km local), MUV Innova Crysta (7 seats, ₹21/km outstation, ₹26/km local).
+- Minimum Distance: No minimum distance requirement — all trips are billed purely on actual distance travelled.
+- Vehicles: Sedan (4 seats, ₹14/km), SUV (6 seats, ₹20/km), MUV Innova Crysta (7 seats, ₹21/km).
 - Self Drive rentals: 250 km/day included (Sedan ₹1800/day, SUV ₹2800/day, MUV ₹3200/day).`;
 
   const tools = [
@@ -454,15 +453,15 @@ function executeLocalAssistant(
     lower.includes("rate") ||
     lower.includes("how much")
   ) {
-    // If it's a specific question about local 25km trip
-    if (lower.includes("25km") || lower.includes("25 km") || lower.includes("local")) {
-      const localFare = calculateFare({
+    // If it's a specific question about a 25km trip
+    if (lower.includes("25km") || lower.includes("25 km")) {
+      const tripFare = calculateFare({
         vehicle: siteConfig.vehicles[0],
         distanceKm: 25,
         tripType: "one-way",
         driveMode: "with-driver",
       });
-      reply = `A 25 km local sedan trip is ₹${localFare.total} (billed at ₹${siteConfig.vehicles[0].localRatePerKm}/km local rate + ₹${localFare.fuelAdjustment}/km fuel adjustment, with no driver bata or minimum floor).`;
+      reply = `A 25 km sedan trip is ₹${tripFare.total} (billed at 25 km @ ₹${siteConfig.vehicles[0].ratePerKm}/km + ₹${tripFare.fuelAdjustment}/km fuel adjustment + ₹${siteConfig.driverBataPerDay} driver bata, with no minimum km floor).`;
       return { functionCalls, reply };
     }
 
@@ -547,12 +546,7 @@ function executeFareQuote(bookingState: any): { total: number; reply: string } {
   const pLabel = bookingState.pickup?.label || "your pickup";
   const dLabel = bookingState.drop?.label || "destination";
 
-  let replyText = "";
-  if (fareResult.isShortDistance) {
-    replyText = `Estimated local fare for ${vehicle.name.split(" ")[0]} from ${pLabel} to ${dLabel} (${fareResult.billableKm} km) is ₹${fareResult.total.toLocaleString()} with no driver bata.`;
-  } else {
-    replyText = `Estimated fare for ${vehicle.name.split(" ")[0]} from ${pLabel} to ${dLabel} is ₹${fareResult.total.toLocaleString()} (${fareResult.billableKm} km billable including fuel adjustment and driver bata).`;
-  }
+  const replyText = `Estimated fare for ${vehicle.name.split(" ")[0]} from ${pLabel} to ${dLabel} (${fareResult.billableKm} km) is ₹${fareResult.total.toLocaleString()} (including ₹${fareResult.effectiveRatePerKm}/km effective rate and ₹${siteConfig.driverBataPerDay} driver bata).`;
 
   return { total: fareResult.total, reply: replyText };
 }

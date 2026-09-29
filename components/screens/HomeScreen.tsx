@@ -745,7 +745,7 @@ export default function HomeScreen({ onOpenMapPicker }: HomeScreenProps) {
       {/* One Thin Trust Line Only */}
       <div className="text-center py-2">
         <p className="text-[11px] font-semibold text-slate-400">
-          24/7 Outstation &amp; Local Taxi &bull; Transparent Fares &bull; Zero Cancellation Fee
+          24/7 Outstation &amp; Local Taxi &bull; No Minimum Distance &bull; Zero Cancellation Fee
         </p>
       </div>
     </div>

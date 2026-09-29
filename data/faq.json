@@ -17,7 +17,7 @@
   {
     "category": "Fares & Payments",
     "question": "What is the Driver Bata and when does it apply?",
-    "answer": "Driver Bata is ₹400 per day for with-driver outstation trips. For short local trips of 40 km or under, no driver bata is charged."
+    "answer": "Driver Bata is ₹400 per day for with-driver trips."
   },
   {
     "category": "Fares & Payments",
@@ -26,8 +26,8 @@
   },
   {
     "category": "Fares & Payments",
-    "question": "What is the minimum billing distance?",
-    "answer": "For outstation one-way trips, the minimum billing floor is 130 km. For outstation round trips, the minimum billing floor is 250 km. Short-distance local trips (≤40 km) have no minimum km floor and are billed on actual distance at the local per-km rate."
+    "question": "Do you have a minimum distance?",
+    "answer": "No — we cover trips of any length across South India with no minimum distance requirement. You only pay for the real distance travelled."
   },
   {
     "category": "Fares & Payments",

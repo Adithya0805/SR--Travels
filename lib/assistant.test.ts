@@ -85,11 +85,11 @@ describe("AI Trip Assistant API & Verification Tests", () => {
     const data = await res.json();
     // Must contain the exact real fare total ₹1,250
     expect(data.reply).toContain("₹1,250");
-    expect(data.reply).toContain("50 km billable");
+    expect(data.reply).toContain("50 km");
   });
 
-  it("should accurately calculate and explain a 25km local trip fare", async () => {
-    const localFare = calculateFare({
+  it("should accurately calculate and explain a 25km trip fare without minimum floors", async () => {
+    const tripFare = calculateFare({
       vehicle: siteConfig.vehicles[0],
       distanceKm: 25,
       tripType: "one-way",
@@ -97,21 +97,21 @@ describe("AI Trip Assistant API & Verification Tests", () => {
       days: 1,
     });
 
-    expect(localFare.total).toBe(525);
+    expect(tripFare.total).toBe(825);
 
     const req = new Request("http://localhost:3000/api/assistant", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-forwarded-for": "192.168.1.52" },
       body: JSON.stringify({
-        message: "Fare for a 25km local trip?",
+        message: "Fare for a 25km trip?",
         bookingState: sampleBookingState,
       }),
     });
 
     const res = await assistantHandler(req);
     const data = await res.json();
-    expect(data.reply).toContain("₹525");
-    expect(data.reply).toContain("no driver bata");
+    expect(data.reply).toContain("₹825");
+    expect(data.reply).toContain("driver bata");
   });
 
   it("should return the exact cancellation policy from siteConfig for cancellation questions", async () => {

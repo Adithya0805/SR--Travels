@@ -128,7 +128,7 @@ function getFareBreakdown(booking: BookingRow) {
     const billableKm = result.billableKm;
     const baseFare = result.baseRatePerKm * billableKm;
     const driverBata =
-      driveMode === "with-driver" && !result.isShortDistance
+      driveMode === "with-driver"
         ? siteConfig.driverBataPerDay * days
         : 0;
 

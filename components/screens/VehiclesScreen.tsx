@@ -116,17 +116,11 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
               <span className="truncate">{drop.label || drop.address}</span>
             </div>
             <div className="text-[10px] text-slate-300 mt-0.5 flex items-center gap-1.5">
-              <span>
-                {distanceKm <= 40
-                  ? "Local (≤40 km)"
-                  : distanceKm < siteConfig.minKmOneWay && tripType !== "round-trip"
-                  ? "Mid-Range (40-130 km)"
-                  : tripType === "round-trip"
-                  ? "Round Trip"
-                  : "One Way"}
-              </span>
+              <span>{tripType === "round-trip" ? "Round Trip" : "One Way"}</span>
               <span>&bull;</span>
               <span>{driveMode === "with-driver" ? "With Driver" : "Self Drive"}</span>
+              <span>&bull;</span>
+              <span className="text-emerald-400 font-bold">No min km</span>
             </div>
           </div>
 
@@ -216,9 +210,7 @@ export default function VehiclesScreen({ onOpenRoutePreview }: VehiclesScreenPro
 
                   <p className="text-[10px] text-slate-400 mt-0.5 font-medium">
                     {driveMode === "with-driver"
-                      ? distanceKm <= 40
-                        ? `₹${v.localRatePerKm}/km local &bull; Fuel adj +₹${v.fare.fuelAdjustment}/km`
-                        : `₹${v.ratePerKm}/km &bull; ₹${siteConfig.driverBataPerDay} bata/day`
+                      ? `₹${v.ratePerKm}/km &bull; ₹${siteConfig.driverBataPerDay} bata/day &bull; Fuel adj +₹${v.fare.fuelAdjustment}/km`
                       : `₹${v.ratePerDay}/day &bull; ${v.kmCapPerDay} km/day included`}
                   </p>
                 </div>

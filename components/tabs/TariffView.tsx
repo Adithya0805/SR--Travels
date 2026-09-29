@@ -32,7 +32,7 @@ export default function TariffView() {
                 </div>
                 <div className="text-right">
                   <span className="text-sm font-black text-emerald-600">₹{v.ratePerKm}/km</span>
-                  <span className="text-[10px] text-slate-400 block">Outstation (₹{v.localRatePerKm}/km local)</span>
+                  <span className="text-[10px] text-slate-400 block">Pure real-distance billing</span>
                 </div>
               </div>
 
@@ -53,17 +53,17 @@ export default function TariffView() {
         {/* Pricing Terms & Policies */}
         <div className="bg-slate-900 text-white rounded-2xl p-4 space-y-2.5 text-xs">
           <h4 className="font-black text-amber-400 uppercase tracking-wide text-[11px]">
-            Pricing Guidelines &amp; Floors
+            Pricing Guidelines &amp; Terms
           </h4>
           <ul className="space-y-1.5 text-[11px] text-slate-300 list-disc list-inside">
             <li>
-              <strong className="text-white">Local Rides (≤40 km):</strong> Billed at local per-km rate. No driver bata and no minimum km floor applied.
+              <strong className="text-white">No Minimum Distance:</strong> Pay only for the actual distance you travel — zero artificial distance floors.
             </li>
             <li>
-              <strong className="text-white">One Way (&gt;40 km):</strong> Minimum billable distance is {siteConfig.minKmOneWay} km.
+              <strong className="text-white">One Way:</strong> Actual distance &times; rate/km + driver bata.
             </li>
             <li>
-              <strong className="text-white">Round Trip:</strong> Minimum billable distance is {siteConfig.minKmRoundTrip} km.
+              <strong className="text-white">Round Trip:</strong> Actual round-trip distance &times; rate/km + driver bata.
             </li>
             <li>
               <strong className="text-white">Driver Bata:</strong> ₹{siteConfig.driverBataPerDay} per calendar day.
