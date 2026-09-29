@@ -78,7 +78,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
-      <body className="h-full w-full overflow-hidden bg-slate-900 text-slate-800 select-none font-poppins">
+      <body className="min-h-full w-full overflow-x-hidden overflow-y-auto bg-slate-900 text-slate-800 select-none font-poppins">
         {children}
         <script
           dangerouslySetInnerHTML={{

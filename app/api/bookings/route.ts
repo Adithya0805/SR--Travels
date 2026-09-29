@@ -195,39 +195,96 @@ export async function POST(request: Request) {
       }
     }
 
-    // 6. Insert booking into Supabase using server-side client (service role)
+    // Verify project ref for debugging & sync check
+    const extractProjectRef = (url: string) => {
+      const match = url.match(/https:\/\/([^.]+)\.supabase\.co/);
+      return match ? match[1] : "unknown";
+    };
+    const apiProjectRef = extractProjectRef(supabaseUrl);
+    console.log(
+      `[SUPABASE_PROJECT_VERIFY] API Route Project Ref: ${apiProjectRef}`
+    );
+
+    // 6. Look up vehicle name from config if available
+    const vehicleNames: Record<string, string> = {
+      sedan: "Sedan (Dzire / Etios)",
+      suv: "SUV (Ertiga / Rumion)",
+      muv: "MUV (Innova Crysta)",
+    };
+    const vehicleName = vehicleNames[vehicle_id] || vehicle_id || "Standard Vehicle";
+
+    // Split travel_datetime into date and time
+    let pickupDate = null;
+    let pickupTime = null;
+    if (travel_datetime && typeof travel_datetime === "string") {
+      const parts = travel_datetime.split(" ");
+      pickupDate = parts[0] || null;
+      pickupTime = parts[1] || null;
+    }
+
+    const bookingId = crypto.randomUUID();
+
+    // Build complete record providing both naming conventions (new and legacy schema)
+    const insertPayload = {
+      id: bookingId,
+      booking_code,
+      customer_name: trimmedName,
+      name: trimmedName,
+      customer_phone: trimmedPhone,
+      phone: trimmedPhone,
+      pickup_address: pickup_address || null,
+      pickup_lat: pickup_lat || null,
+      pickup_lng: pickup_lng || null,
+      drop_address: drop_address || null,
+      drop_lat: drop_lat || null,
+      drop_lng: drop_lng || null,
+      distance_km,
+      vehicle_id,
+      vehicle_name: vehicleName,
+      service_mode: drive_mode,
+      drive_mode: drive_mode,
+      trip_type,
+      pickup_date: pickupDate,
+      pickup_time: pickupTime,
+      days: days || 1,
+      passengers: body.passengers || 1,
+      total_fare: fare_total,
+      fare_total: fare_total,
+      travel_datetime,
+      status: "new",
+    };
+
+    // Server-side audit logging for inserts (logged server-side only, not exposed to client)
+    console.log(
+      `[BOOKING_INSERT_REQUEST] [${new Date().toISOString()}] IP: ${clientIp} Code: ${booking_code} Payload:`,
+      JSON.stringify(insertPayload, null, 2)
+    );
+
+    // Insert booking into Supabase using server-side client (service role)
     const { data, error } = await supabaseServer
       .from("bookings")
-      .insert([
-        {
-          booking_code,
-          name: trimmedName,
-          phone: trimmedPhone,
-          pickup_address: pickup_address || null,
-          pickup_lat: pickup_lat || null,
-          pickup_lng: pickup_lng || null,
-          drop_address: drop_address || null,
-          drop_lat: drop_lat || null,
-          drop_lng: drop_lng || null,
-          distance_km,
-          trip_type,
-          drive_mode,
-          days: days || 1,
-          vehicle_id,
-          fare_total,
-          travel_datetime,
-          status: "new",
-        },
-      ])
+      .insert([insertPayload])
       .select();
 
     if (error) {
-      console.error("Supabase API insert error:", error);
+      console.error(
+        `[BOOKING_INSERT_FAILED] [${new Date().toISOString()}] Code: ${booking_code} Supabase Error:`,
+        {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        }
+      );
       return NextResponse.json(
         { error: error.message || "Failed to save booking to database." },
         { status: 500 }
       );
     }
+
+    console.log(
+      `[BOOKING_INSERT_SUCCESS] [${new Date().toISOString()}] Booking ${booking_code} inserted successfully. Row ID: ${bookingId}`
+    );
 
     return NextResponse.json({
       success: true,

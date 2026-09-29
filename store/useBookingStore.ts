@@ -242,6 +242,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
           trip_type: tripType,
           drive_mode: driveMode,
           days,
+          passengers: get().passengers,
           vehicle_id: vehicle.id,
           fare_total: fare.total,
           travel_datetime: travelDateTime,
@@ -252,12 +253,17 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
 
       const responseData = await res.json();
       if (!res.ok) {
-        console.warn("Booking API notice:", responseData.error || res.statusText);
-      } else {
-        console.log("Booking created successfully via API:", bookingCode);
+        const errorMsg =
+          responseData?.error ||
+          `Booking submission failed (${res.status}: ${res.statusText})`;
+        throw new Error(errorMsg);
       }
-    } catch (err) {
+
+      console.log("Booking created successfully via API:", bookingCode);
+    } catch (err: any) {
       console.error("Booking submission error:", err);
+      set({ isSubmittingBooking: false });
+      throw err;
     }
 
     // 2. Save local backup to localStorage

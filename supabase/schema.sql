@@ -26,6 +26,25 @@ alter table public.bookings add column if not exists travel_datetime text;
 alter table public.bookings add column if not exists status text default 'new';
 alter table public.bookings add column if not exists created_at timestamp with time zone default timezone('utc'::text, now());
 
+-- Safely set default on id and loosen legacy constraints if pre-existing
+do $$
+begin
+  alter table public.bookings alter column id set default gen_random_uuid()::text;
+exception when others then null;
+end $$;
+
+do $$
+begin
+  alter table public.bookings alter column customer_name drop not null;
+exception when others then null;
+end $$;
+
+do $$
+begin
+  alter table public.bookings alter column customer_phone drop not null;
+exception when others then null;
+end $$;
+
 -- 3. Update constraints
 alter table public.bookings drop constraint if exists bookings_phone_check;
 alter table public.bookings drop constraint if exists bookings_name_check;
